@@ -1,4 +1,8 @@
-# FLTrust
+# Foggy Trust
+
+By Emmanuel Rassou & Tomas Gonzalez
+
+![Hierarchical trust](hierarchical_trust.png)
 
 Demo implementation for **FLTrust: Byzantine-Robust Federated Learning** (NDSS 2021).  
 Paper: [FLTrust: Byzantine-Robust Federated Learning](https://arxiv.org/abs/2012.13995)
