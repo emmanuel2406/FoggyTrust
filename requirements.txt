@@ -1,0 +1,5 @@
+# FLTrust demo dependencies
+# MXNet 1.x (Gluon API) with GPU support (CUDA 11.2; compatible with CUDA 12.x via driver)
+# Use mxnet-cu112 for GPU; base mxnet is CPU-only
+mxnet-cu112>=1.9.0
+numpy>=1.16.0,<2.0.0
