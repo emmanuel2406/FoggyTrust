@@ -9,7 +9,7 @@ import byzantine
 import os
 import sys
 
-def parse_args():
+def build_arg_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("--server_pc", help="the number of data the server holds", type=int, default=100)
     parser.add_argument("--dataset", help="dataset", type=str, default="FashionMNIST")
@@ -25,7 +25,11 @@ def parse_args():
     parser.add_argument("--byz_type", help="type of attack", type=str, default="no")
     parser.add_argument("--aggregation", help="aggregation", type=str, default="fltrust")
     parser.add_argument("--p", help="bias probability of 1 in server sample", type=float, default=0.1)
-    return parser.parse_args()
+    return parser
+
+
+def parse_args(argv=None):
+    return build_arg_parser().parse_args(argv)
 
 def get_device(device):
     # define the device to use
@@ -50,7 +54,7 @@ def get_cnn(num_outputs=10):
 
 def get_net(net_type, num_outputs=10):
     # define the model architecture
-    if args.net == 'cnn':
+    if net_type == 'cnn':
         net = get_cnn(num_outputs)
     else:
         raise NotImplementedError
@@ -87,7 +91,11 @@ def get_byz(byz_type):
     if byz_type == "no":
         return byzantine.no_byz
     elif byz_type == 'trim_attack':
-        return byzantine.trim_attack 
+        return byzantine.trim_attack
+    elif byz_type == 'label_flipping_attack' :
+        return byzantine.label_flipping_attack
+    elif byz_type == 'scale_attack':
+        return byzantine.scale_attack
     else:
         raise NotImplementedError
         
@@ -98,7 +106,7 @@ def load_data(dataset):
             return nd.transpose(data.astype(np.float32), (2, 0, 1)) / 255, label.astype(np.float32)
         train_data = mx.gluon.data.DataLoader(mx.gluon.data.vision.FashionMNIST(train=True, transform=transform), 60000,shuffle=True, last_batch='rollover')
         test_data = mx.gluon.data.DataLoader(mx.gluon.data.vision.FashionMNIST(train=False, transform=transform), 250, shuffle=False, last_batch='rollover')
-    elif (args.dataset == 'mnist'):
+    elif dataset == 'mnist':
         def transform(data, label):
             return nd.transpose(data.astype(np.float32), (2, 0, 1)) / 255, label.astype(np.float32)
         train_data = mx.gluon.data.DataLoader(mx.gluon.data.vision.MNIST(train=True, transform=transform), 60000, shuffle=True, last_batch='rollover')
@@ -213,6 +221,7 @@ def main(args):
 
         grad_list = []
         test_acc_list = []
+        eval_iteration = []
 
         # load the data
         # fix the seeds for loading data
@@ -235,7 +244,10 @@ def main(args):
                 minibatch = np.random.choice(list(range(each_worker_data[i].shape[0])), size=batch_size, replace=False)
                 with autograd.record():
                     output = net(each_worker_data[i][minibatch])
-                    loss = softmax_cross_entropy(output, each_worker_label[i][minibatch])
+                    batch_label = each_worker_label[i][minibatch]
+                    if args.byz_type == "label_flipping_attack" and i < args.nbyz:
+                        batch_label = byzantine.flipped_labels_fltrust(batch_label, num_labels)
+                    loss = softmax_cross_entropy(output, batch_label)
 
                 loss.backward()
 
@@ -258,14 +270,17 @@ def main(args):
             # evaluate the model accuracy
             if (e + 1) % 10 == 0:
                 test_accuracy = evaluate_accuracy(test_data, net, ctx)
+                eval_iteration.append(e + 1)
                 test_acc_list.append(test_accuracy)
-                print("Iteration %02d. Test_acc %0.4f" % (e, test_accuracy))
+                print("[%s] Iteration %02d. Test_acc %0.4f" % (args.byz_type, e, test_accuracy))
 
-        del test_acc_list
-        test_acc_list = []
+        return {
+            "eval_iteration": np.asarray(eval_iteration, dtype=np.int64),
+            "test_accuracy": np.asarray(test_acc_list, dtype=np.float64),
+        }
 
 if __name__ == "__main__":
     args = parse_args()
     input_str = ' '.join(sys.argv)
     print(input_str)
-    main(args)
+    _ = main(args)

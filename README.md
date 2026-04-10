@@ -86,6 +86,16 @@ python test_byz_p.py --dataset mnist --lr 0.01 --batch_size 32 --nworkers 100 --
 python test_byz_p.py --dataset FashionMNIST
 ```
 
+### All Byzantine types (`test_byz_all.py`)
+
+To run **every supported attack** with the **same** hyperparameters and collect test accuracy over time in a single table (for plotting or analysis), use:
+
+```bash
+python test_byz_all.py
+```
+
+Run this from the `FoggyTrust` directory (same as the other scripts). It sequentially calls `test_byz_p.main` for `no`, `trim_attack`, and `label_flipping_attack`, then prints array shapes for the stacked time series. **Command-line flags are the same as `test_byz_p.py`** (e.g. `--niter`, `--dataset`, `--gpu`); `--byz_type` is ignored here because each attack is run in turn. Example: `python test_byz_all.py --niter 30 --gpu -1`. For programmatic use, pass `base_args` into `build_byzantine_timeseries_table`.
+
 ### Main arguments
 
 | Argument       | Default      | Description                         |
@@ -93,7 +103,7 @@ python test_byz_p.py --dataset FashionMNIST
 | `--dataset`    | FashionMNIST | Dataset: `mnist` or `FashionMNIST`  |
 | `--nworkers`   | 100          | Number of clients                   |
 | `--nbyz`       | 20           | Number of Byzantine (malicious) clients |
-| `--byz_type`   | no           | Attack type: `no` or `trim_attack`  |
+| `--byz_type`   | no           | Attack type: `no`, `trim_attack`, `label_flipping_attack` or `scaling_attack` |
 | `--lr`         | 0.006        | Learning rate                       |
 | `--batch_size` | 32           | Minibatch size per client           |
 | `--niter`      | 2500         | Number of training iterations       |
@@ -102,6 +112,7 @@ python test_byz_p.py --dataset FashionMNIST
 ## Files
 
 - `run.py` — Main entry point
+- `test_byz_all.py` — Run all Byzantine attack types with shared hyperparameters; tabular test-accuracy time series
 - `test_byz_p.py` — Training loop, data loading, FLTrust orchestration
 - `nd_aggregation.py` — FLTrust aggregation logic
 - `byzantine.py` — Byzantine attack implementations
