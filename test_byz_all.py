@@ -10,6 +10,8 @@ import test_byz_p as tbp
 
 # Must match test_byz_p.get_byz / byzantine handlers
 ALL_BYZ_TYPES = ("no", "trim_attack", "label_flipping_attack")
+# Must match test_byz_p.build_arg_parser --aggregation choices
+ALL_AGGREGATIONS = ("fltrust", "fedavg", "trimmed_mean")
 
 
 def build_byzantine_timeseries_table(base_args=None, byz_types=None):
@@ -73,9 +75,55 @@ def build_byzantine_timeseries_table(base_args=None, byz_types=None):
     }
 
 
+def build_aggregation_timeseries_table(base_args=None, aggregations=None):
+    """
+    Run ``test_byz_p.main`` once per aggregation rule with identical hyperparameters,
+    then stack test accuracies into a matrix (same layout as ``build_byzantine_timeseries_table``).
+
+    ``--aggregation`` in ``base_args`` is overwritten for each run; ``byz_type`` and all
+    other fields are preserved.
+    """
+    if aggregations is None:
+        aggregations = ALL_AGGREGATIONS
+    if base_args is None:
+        base_args = tbp.parse_args([])
+
+    aggregations = tuple(aggregations)
+    rows = []
+    eval_x = None
+
+    for agg in aggregations:
+        args = copy.deepcopy(base_args)
+        args.aggregation = agg
+        out = tbp.main(args)
+        x = out["eval_iteration"]
+        y = out["test_accuracy"]
+        if eval_x is None:
+            eval_x = x
+        elif not np.array_equal(eval_x, x):
+            raise ValueError(
+                "eval_iteration mismatch for aggregation %r (expected common grid)." % (agg,)
+            )
+        rows.append(y)
+
+    acc = np.stack(rows, axis=0)
+    results_by_agg = {agg: acc[i].copy() for i, agg in enumerate(aggregations)}
+    return {
+        "eval_iteration": eval_x,
+        "aggregations": aggregations,
+        "test_accuracy": acc,
+        "results_by_agg": results_by_agg,
+    }
+
+
 if __name__ == "__main__":
     base_args = tbp.parse_args(sys.argv[1:])
-    table = build_byzantine_timeseries_table(base_args=base_args)
-    print("byz_types:", table["byz_types"])
-    print("eval_iteration shape:", table["eval_iteration"].shape)
-    print("test_accuracy shape:", table["test_accuracy"].shape)
+    table_byz = build_byzantine_timeseries_table(base_args=base_args)
+    print("Byzantine sweep — byz_types:", table_byz["byz_types"])
+    print("Byzantine sweep — eval_iteration shape:", table_byz["eval_iteration"].shape)
+    print("Byzantine sweep — test_accuracy shape:", table_byz["test_accuracy"].shape)
+
+    table_agg = build_aggregation_timeseries_table(base_args=base_args)
+    print("Aggregation sweep — aggregations:", table_agg["aggregations"])
+    print("Aggregation sweep — eval_iteration shape:", table_agg["eval_iteration"].shape)
+    print("Aggregation sweep — test_accuracy shape:", table_agg["test_accuracy"].shape)

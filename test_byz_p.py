@@ -23,7 +23,13 @@ def build_arg_parser():
     parser.add_argument("--nrepeats", help="seed", type=int, default=0)
     parser.add_argument("--nbyz", help="# byzantines", type=int, default=20)
     parser.add_argument("--byz_type", help="type of attack", type=str, default="no")
-    parser.add_argument("--aggregation", help="aggregation", type=str, default="fltrust")
+    parser.add_argument(
+        "--aggregation",
+        help="aggregation rule",
+        type=str,
+        default="fltrust",
+        choices=("fltrust", "fedavg", "trimmed_mean"),
+    )
     parser.add_argument("--p", help="bias probability of 1 in server sample", type=float, default=0.1)
     return parser
 
@@ -85,6 +91,19 @@ def evaluate_accuracy(data_iterator, net, ctx, trigger=False, target=None):
         label = label[remaining_idx]
         acc.update(preds=predictions, labels=label)        
     return acc.get()[1]
+
+AGGREGATION_FUNCS = {
+    "fltrust": nd_aggregation.fltrust,
+    "fedavg": nd_aggregation.fedavg,
+    "trimmed_mean": nd_aggregation.trimmed_mean,
+}
+
+
+def get_aggregation(aggregation):
+    if aggregation not in AGGREGATION_FUNCS:
+        raise NotImplementedError("Unknown aggregation: %r" % (aggregation,))
+    return AGGREGATION_FUNCS[aggregation]
+
 
 def get_byz(byz_type):
     # get the attack type
@@ -199,6 +218,7 @@ def main(args):
     batch_size = args.batch_size
     num_inputs, num_outputs, num_labels = get_shapes(args.dataset)
     byz = get_byz(args.byz_type)
+    aggregate = get_aggregation(args.aggregation)
     num_workers = args.nworkers
     lr = args.lr
     niter = args.niter
@@ -253,16 +273,18 @@ def main(args):
 
                 grad_list.append([param.grad().copy() for param in net.collect_params().values()])
 
-            if args.aggregation == "fltrust":
-                # compute server update and append it to the end of the list
-                minibatch = np.random.choice(list(range(server_data.shape[0])), size=args.server_pc, replace=False)
-                with autograd.record():
-                    output = net(server_data)
-                    loss = softmax_cross_entropy(output, server_label)
-                loss.backward()
-                grad_list.append([param.grad().copy() for param in net.collect_params().values()])
-                # perform the aggregation
-                nd_aggregation.fltrust(grad_list, net, lr, args.nbyz, byz)
+            # nd_aggregation.* expect len(grad_list) == n_workers + 1; the last slot is the
+            # server reference update (used by fltrust; trailing row is ignored by fedavg / trimmed_mean).
+            # Same RNG draw as the original fltrust path (indices not used for server forward).
+            _ = np.random.choice(
+                list(range(server_data.shape[0])), size=args.server_pc, replace=False
+            )
+            with autograd.record():
+                output = net(server_data)
+                loss = softmax_cross_entropy(output, server_label)
+            loss.backward()
+            grad_list.append([param.grad().copy() for param in net.collect_params().values()])
+            aggregate(grad_list, net, lr, args.nbyz, byz)
 
             del grad_list
             grad_list = []
@@ -272,7 +294,7 @@ def main(args):
                 test_accuracy = evaluate_accuracy(test_data, net, ctx)
                 eval_iteration.append(e + 1)
                 test_acc_list.append(test_accuracy)
-                print("[%s] Iteration %02d. Test_acc %0.4f" % (args.byz_type, e, test_accuracy))
+                print("[%s - %s] Iteration %02d. Test_acc %0.4f" % (args.aggregation, args.byz_type, e, test_accuracy))
 
         return {
             "eval_iteration": np.asarray(eval_iteration, dtype=np.int64),
