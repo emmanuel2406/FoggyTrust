@@ -9,9 +9,9 @@ import numpy as np
 import test_byz_p as tbp
 
 # Must match test_byz_p.get_byz / byzantine handlers
-ALL_BYZ_TYPES = ("no", "trim_attack", "label_flipping_attack")
+ALL_BYZ_TYPES = ("no", "trim_attack", "label_flipping_attack", "krum_attack", "adaptive_attack")
 # Must match test_byz_p.build_arg_parser --aggregation choices
-ALL_AGGREGATIONS = ("fltrust", "fedavg", "trimmed_mean")
+ALL_AGGREGATIONS = ("fltrust", "fedavg", "trimmed_mean", "krum")
 
 
 def build_byzantine_timeseries_table(base_args=None, byz_types=None):

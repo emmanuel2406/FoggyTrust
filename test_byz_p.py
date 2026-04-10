@@ -28,7 +28,7 @@ def build_arg_parser():
         help="aggregation rule",
         type=str,
         default="fltrust",
-        choices=("fltrust", "fedavg", "trimmed_mean"),
+        choices=("fltrust", "fedavg", "trimmed_mean", "krum"),
     )
     parser.add_argument("--p", help="bias probability of 1 in server sample", type=float, default=0.1)
     return parser
@@ -96,6 +96,7 @@ AGGREGATION_FUNCS = {
     "fltrust": nd_aggregation.fltrust,
     "fedavg": nd_aggregation.fedavg,
     "trimmed_mean": nd_aggregation.trimmed_mean,
+    "krum": nd_aggregation.krum,
 }
 
 
@@ -115,6 +116,10 @@ def get_byz(byz_type):
         return byzantine.label_flipping_attack
     elif byz_type == 'scale_attack':
         return byzantine.scale_attack
+    elif byz_type == 'krum_attack':
+        return byzantine.krum_attack
+    elif byz_type == 'adaptive_attack':
+        return byzantine.adaptive_attack
     else:
         raise NotImplementedError
         

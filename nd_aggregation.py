@@ -6,6 +6,32 @@ if not hasattr(np, 'bool'):
 import mxnet as mx
 from mxnet import nd, autograd, gluon
 
+
+def _krum_scores(samples, f):
+    size = len(samples)
+    neighbor_count = size - f - 2
+    if neighbor_count <= 0:
+        raise ValueError(
+            "Krum requires at least f + 3 client updates; got n=%d, f=%d"
+            % (size, f)
+        )
+    flattened = [sample.asnumpy().reshape(-1) for sample in samples]
+    metric = []
+    for idx, sample in enumerate(flattened):
+        distances = [
+            np.linalg.norm(sample - other)
+            for j, other in enumerate(flattened)
+            if j != idx
+        ]
+        metric.append(np.sum(np.sort(distances)[:neighbor_count]))
+    return metric
+
+
+def _krum(samples, f):
+    metric = _krum_scores(samples, f)
+    index = int(np.argmin(metric))
+    return samples[index], index
+
 def fltrust(gradients, net, lr, f, byz):
     """
     gradients: list of gradients. The last one is the server update.
@@ -89,6 +115,25 @@ def trimmed_mean(gradients, net, lr, f, byz):
     sorted_vals = nd.sort(stacked, axis=1)
     trimmed = sorted_vals[:, k : n - k]
     global_update = nd.mean(trimmed, axis=1, keepdims=True)
+
+    idx = 0
+    for j, (param) in enumerate(net.collect_params().values()):
+        param.set_data(param.data() - lr * global_update[idx:(idx+param.data().size)].reshape(param.data().shape))
+        idx += param.data().size
+
+
+def krum(gradients, net, lr, f, byz):
+    """
+    gradients: list of gradients. The last one is the server update.
+    net: model parameters.
+    lr: learning rate.
+    f: number of malicious clients. The first f clients are malicious.
+    byz: attack type.
+    """
+    param_list = [nd.concat(*[xx.reshape((-1, 1)) for xx in x], dim=0) for x in gradients]
+    param_list = byz(param_list, net, lr, f)
+    n = len(param_list) - 1
+    global_update, _ = _krum([param_list[i] for i in range(n)], f)
 
     idx = 0
     for j, (param) in enumerate(net.collect_params().values()):
