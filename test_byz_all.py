@@ -2,6 +2,7 @@
 from __future__ import print_function
 
 import copy
+import importlib
 import os
 import sys
 import threading
@@ -10,22 +11,65 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import numpy as np
 from tqdm import tqdm
 
-import test_byz_p as tbp
-
 # Must match test_byz_p.get_byz / byzantine handlers
 ALL_BYZ_TYPES = ("scaling_attack", "adaptive_attack", "krum_attack", "no", "label_flipping_attack", "trim_attack")
 # ALL_BYZ_TYPES = ("krum_attack","label_flipping_attack", "trim_attack")
 
 # ALL_BYZ_TYPES = ("label_flipping_attack", "krum_attack", "trim_attack")
 # Must match test_byz_p.build_arg_parser --aggregation choices
-ALL_AGGREGATIONS = ("fltrust", "fedavg", "trimmed_mean", "median", "krum")
-# ALL_AGGREGATIONS = ("krum",)
+# Set to () to skip flat aggregation sweeps.
+# ALL_AGGREGATIONS = ("fltrust", "fedavg", "trimmed_mean", "median", "krum")
+ALL_AGGREGATIONS = ()
+FOGGYTRUST_AGGREGATIONS = ("foggytrust",)
 
 # Thread-local sinks: ``contextlib.redirect_stdout`` swaps *global* sys.stdout, which breaks
 # when ``ThreadPoolExecutor`` runs several experiments at once (all prints share one stream).
 _tls_log_out = threading.local()
 _tls_log_err = threading.local()
 _thread_streams_installed = False
+
+
+def _resolve_runner_module(runner):
+    """
+    Resolve experiment backend:
+    - flat / test_byz_p: original one-level FL setup
+    - foggytrust / test_foggytrust: hierarchical FoggyTrust setup
+    """
+    runner_key = (runner or os.environ.get("FOGGYTRUST_RUNNER") or "flat").strip().lower()
+    if runner_key in ("flat", "test_byz_p"):
+        return "flat", importlib.import_module("test_byz_p")
+    if runner_key in ("foggytrust", "test_foggytrust"):
+        return "foggytrust", importlib.import_module("test_foggytrust")
+    raise ValueError(
+        "Unknown runner %r. Use one of: flat, test_byz_p, foggytrust, test_foggytrust."
+        % (runner,)
+    )
+
+
+def _default_aggregations_for_runner(runner_name):
+    if runner_name == "foggytrust":
+        return FOGGYTRUST_AGGREGATIONS
+    return ALL_AGGREGATIONS
+
+
+def _sanitize_checkpoint_token(value):
+    token = str(value).strip().replace(" ", "_")
+    safe = []
+    for ch in token:
+        if ch.isalnum() or ch in ("-", "_", "."):
+            safe.append(ch)
+        else:
+            safe.append("_")
+    return "".join(safe).strip("_") or "run"
+
+
+def _checkpoint_path(checkpoint_dir, runner_name, sweep_name, *labels):
+    if not checkpoint_dir:
+        return None
+    os.makedirs(checkpoint_dir, exist_ok=True)
+    parts = [runner_name, sweep_name] + [_sanitize_checkpoint_token(x) for x in labels]
+    filename = "__".join(parts) + ".params"
+    return os.path.join(checkpoint_dir, filename)
 
 
 def _tls_get_out_sink():
@@ -125,9 +169,15 @@ def _extract_script_flags_from_argv(argv):
         Default ``"logs"``; set ``--log_dir`` / ``FOGGYTRUST_LOG_DIR`` overrides.
     max_workers : int or None
         ``None`` → ``ThreadPoolExecutor`` default pool size; ``1`` → sequential runs.
+    runner : str
+        ``flat`` (``test_byz_p``) or ``foggytrust`` (``test_foggytrust``).
+    checkpoint_dir : str or None
+        Default ``"checkpoints"``. Each sweep run loads/saves one matching checkpoint file.
     """
     log_dir = os.environ.get("FOGGYTRUST_LOG_DIR") or "logs"
+    checkpoint_dir = os.environ.get("FOGGYTRUST_CHECKPOINT_DIR") or "checkpoints"
     max_workers = None
+    runner = os.environ.get("FOGGYTRUST_RUNNER") or "flat"
     out = []
     i = 0
     while i < len(argv):
@@ -144,44 +194,61 @@ def _extract_script_flags_from_argv(argv):
         elif a.startswith("--max_workers="):
             max_workers = int(a.split("=", 1)[1])
             i += 1
+        elif a == "--runner" and i + 1 < len(argv):
+            runner = argv[i + 1]
+            i += 2
+        elif a.startswith("--runner="):
+            runner = a.split("=", 1)[1]
+            i += 1
+        elif a == "--checkpoint_dir" and i + 1 < len(argv):
+            checkpoint_dir = argv[i + 1]
+            i += 2
+        elif a.startswith("--checkpoint_dir="):
+            checkpoint_dir = a.split("=", 1)[1]
+            i += 1
         else:
             out.append(a)
             i += 1
-    return out, log_dir, max_workers
+    if checkpoint_dir and checkpoint_dir.lower() in ("none", "null", "off", "false", "0"):
+        checkpoint_dir = None
+    return out, log_dir, checkpoint_dir, max_workers, runner
 
 
 def _byz_task(spec):
-    base_args, bt, log_dir = spec
+    runner_name, runner_module, base_args, bt, log_dir, checkpoint_dir = spec
     args = copy.deepcopy(base_args)
     args.byz_type = bt
+    args.checkpoint_path = _checkpoint_path(checkpoint_dir, runner_name, "byz", bt)
     if log_dir:
         log_path = os.path.join(log_dir, "%s.txt" % (bt,))
         with _redirect_stdout_stderr(log_path):
-            return tbp.main(args)
-    return tbp.main(args)
+            return runner_module.main(args)
+    return runner_module.main(args)
 
 
 def _agg_task(spec):
-    base_args, agg, log_dir = spec
+    runner_name, runner_module, base_args, agg, log_dir, checkpoint_dir = spec
     args = copy.deepcopy(base_args)
     args.aggregation = agg
+    args.checkpoint_path = _checkpoint_path(checkpoint_dir, runner_name, "agg", agg)
     if log_dir:
         log_path = os.path.join(log_dir, "%s.txt" % (agg,))
         with _redirect_stdout_stderr(log_path):
-            return tbp.main(args)
-    return tbp.main(args)
+            return runner_module.main(args)
+    return runner_module.main(args)
 
 
 def _pair_task(spec):
-    base_args, bt, agg, log_dir = spec
+    runner_name, runner_module, base_args, bt, agg, log_dir, checkpoint_dir = spec
     args = copy.deepcopy(base_args)
     args.byz_type = bt
     args.aggregation = agg
+    args.checkpoint_path = _checkpoint_path(checkpoint_dir, runner_name, "pair", bt, agg)
     if log_dir:
         log_path = os.path.join(log_dir, "%s__%s.txt" % (bt, agg))
         with _redirect_stdout_stderr(log_path):
-            return tbp.main(args)
-    return tbp.main(args)
+            return runner_module.main(args)
+    return runner_module.main(args)
 
 
 def _asr_row(out):
@@ -194,6 +261,18 @@ def _asr_row(out):
 
 
 def _finalize_byzantine_table(byz_types, outs):
+    if len(byz_types) == 0:
+        empty_eval = np.asarray([], dtype=np.int64)
+        empty_acc = np.empty((0, 0), dtype=np.float64)
+        return {
+            "eval_iteration": empty_eval,
+            "byz_types": tuple(),
+            "test_accuracy": empty_acc,
+            "attack_success_rate": empty_acc.copy(),
+            "results_by_type": {},
+            "results_asr_by_type": {},
+        }
+
     rows = []
     asr_rows = []
     eval_x = None
@@ -223,6 +302,18 @@ def _finalize_byzantine_table(byz_types, outs):
 
 
 def _finalize_aggregation_table(aggregations, outs):
+    if len(aggregations) == 0:
+        empty_eval = np.asarray([], dtype=np.int64)
+        empty_acc = np.empty((0, 0), dtype=np.float64)
+        return {
+            "eval_iteration": empty_eval,
+            "aggregations": tuple(),
+            "test_accuracy": empty_acc,
+            "attack_success_rate": empty_acc.copy(),
+            "results_by_agg": {},
+            "results_asr_by_agg": {},
+        }
+
     rows = []
     asr_rows = []
     eval_x = None
@@ -258,6 +349,19 @@ def _finalize_pairwise_table(byz_types, aggregations, outs):
             "expected %d outputs for pairwise sweep, got %d"
             % (n_byz * n_agg, len(outs),)
         )
+    if n_byz == 0 or n_agg == 0:
+        empty_eval = np.asarray([], dtype=np.int64)
+        empty_acc = np.empty((n_byz, n_agg, 0), dtype=np.float64)
+        return {
+            "eval_iteration": empty_eval,
+            "byz_types": byz_types,
+            "aggregations": aggregations,
+            "test_accuracy": empty_acc,
+            "attack_success_rate": empty_acc.copy(),
+            "results_by_pair": {},
+            "results_asr_by_pair": {},
+        }
+
     eval_x = None
     rows = []
     asr_rows = []
@@ -289,7 +393,14 @@ def _finalize_pairwise_table(byz_types, aggregations, outs):
     }
 
 
-def build_byzantine_timeseries_table(base_args=None, byz_types=None, log_dir=None, max_workers=None):
+def build_byzantine_timeseries_table(
+    base_args=None,
+    byz_types=None,
+    log_dir=None,
+    checkpoint_dir="checkpoints",
+    max_workers=None,
+    runner="flat",
+):
     """
     Run ``test_byz_p.main`` once per attack type with identical hyperparameters,
     then stack test accuracies into a matrix for line or image plots.
@@ -311,6 +422,9 @@ def build_byzantine_timeseries_table(base_args=None, byz_types=None, log_dir=Non
     log_dir : str or None, optional
         If set (e.g. ``"log"``), each run's stdout/stderr is written to
         ``os.path.join(log_dir, "<byz_type>.txt")`` (e.g. ``log/trim_attack.txt``).
+    checkpoint_dir : str or None, optional
+        If set, each run loads/saves params at
+        ``os.path.join(checkpoint_dir, "<runner>__byz__<byz_type>.params")``.
     max_workers : int or None, optional
         ``1`` runs jobs sequentially. ``None`` uses a thread pool (default size)
         and runs one ``test_byz_p.main`` per attack in parallel.
@@ -327,11 +441,15 @@ def build_byzantine_timeseries_table(base_args=None, byz_types=None, log_dir=Non
     """
     if byz_types is None:
         byz_types = ALL_BYZ_TYPES
+    runner_name, runner_module = _resolve_runner_module(runner)
     if base_args is None:
-        base_args = tbp.parse_args([])
+        base_args = runner_module.parse_args([])
 
     byz_types = tuple(byz_types)
-    specs = [(base_args, bt, log_dir) for bt in byz_types]
+    specs = [
+        (runner_name, runner_module, base_args, bt, log_dir, checkpoint_dir)
+        for bt in byz_types
+    ]
     if max_workers == 1:
         outs = [_byz_task(s) for s in specs]
     else:
@@ -341,7 +459,14 @@ def build_byzantine_timeseries_table(base_args=None, byz_types=None, log_dir=Non
     return _finalize_byzantine_table(byz_types, outs)
 
 
-def build_aggregation_timeseries_table(base_args=None, aggregations=None, log_dir=None, max_workers=None):
+def build_aggregation_timeseries_table(
+    base_args=None,
+    aggregations=None,
+    log_dir=None,
+    checkpoint_dir="checkpoints",
+    max_workers=None,
+    runner="flat",
+):
     """
     Run ``test_byz_p.main`` once per aggregation rule with identical hyperparameters,
     then stack test accuracies into a matrix (same layout as ``build_byzantine_timeseries_table``).
@@ -353,9 +478,13 @@ def build_aggregation_timeseries_table(base_args=None, aggregations=None, log_di
     ----------
     log_dir : str or None, optional
         If set, each run's stdout/stderr goes to ``os.path.join(log_dir, "<aggregation>.txt")``.
+    checkpoint_dir : str or None, optional
+        If set, each run loads/saves params at
+        ``os.path.join(checkpoint_dir, "<runner>__agg__<aggregation>.params")``.
     max_workers : int or None, optional
         Same semantics as ``build_byzantine_timeseries_table``.
-
+    runner : :str, optional
+        ``flat`` (``test_byz_p``) or ``foggytrust`` (``test_foggytrust``).
     Returns
     -------
     dict
@@ -363,13 +492,17 @@ def build_aggregation_timeseries_table(base_args=None, aggregations=None, log_di
         ``test_accuracy``, ``attack_success_rate`` with NaNs when ``byz_type`` is not
         ``scaling_attack``, ``results_by_agg``, ``results_asr_by_agg``).
     """
+    runner_name, runner_module = _resolve_runner_module(runner)
     if aggregations is None:
-        aggregations = ALL_AGGREGATIONS
+        aggregations = _default_aggregations_for_runner(runner_name)
     if base_args is None:
-        base_args = tbp.parse_args([])
+        base_args = runner_module.parse_args([])
 
     aggregations = tuple(aggregations)
-    specs = [(base_args, agg, log_dir) for agg in aggregations]
+    specs = [
+        (runner_name, runner_module, base_args, agg, log_dir, checkpoint_dir)
+        for agg in aggregations
+    ]
     if max_workers == 1:
         outs = [_agg_task(s) for s in specs]
     else:
@@ -384,7 +517,9 @@ def build_pairwise_timeseries_table(
     byz_types=None,
     aggregations=None,
     log_dir=None,
+    checkpoint_dir="checkpoints",
     max_workers=None,
+    runner="flat",
 ):
     """
     Run ``test_byz_p.main`` for every ``(byz_type, aggregation)`` pair with shared
@@ -403,15 +538,16 @@ def build_pairwise_timeseries_table(
     """
     if byz_types is None:
         byz_types = ALL_BYZ_TYPES
+    runner_name, runner_module = _resolve_runner_module(runner)
     if aggregations is None:
-        aggregations = ALL_AGGREGATIONS
+        aggregations = _default_aggregations_for_runner(runner_name)
     if base_args is None:
-        base_args = tbp.parse_args([])
+        base_args = runner_module.parse_args([])
 
     byz_types = tuple(byz_types)
     aggregations = tuple(aggregations)
     specs = [
-        (base_args, bt, agg, log_dir)
+        (runner_name, runner_module, base_args, bt, agg, log_dir, checkpoint_dir)
         for bt in byz_types
         for agg in aggregations
     ]
@@ -443,18 +579,29 @@ def build_pairwise_timeseries_table(
 
 
 if __name__ == "__main__":
-    argv_rest, log_dir, max_workers = _extract_script_flags_from_argv(sys.argv[1:])
-    base_args = tbp.parse_args(argv_rest)
+    argv_rest, log_dir, checkpoint_dir, max_workers, runner = _extract_script_flags_from_argv(
+        sys.argv[1:]
+    )
+    runner_name, runner_module = _resolve_runner_module(runner)
+    base_args = runner_module.parse_args(argv_rest)
     byz_types = tuple(ALL_BYZ_TYPES)
-    aggs = tuple(ALL_AGGREGATIONS)
+    aggs = tuple(_default_aggregations_for_runner(runner_name))
 
     table = build_pairwise_timeseries_table(
-        base_args, byz_types, aggs, log_dir, max_workers=max_workers
+        base_args,
+        byz_types,
+        aggs,
+        log_dir,
+        checkpoint_dir=checkpoint_dir,
+        max_workers=max_workers,
+        runner=runner_name,
     )
     n_runs = len(byz_types) * len(aggs)
+    print("Pairwise sweep — runner:", runner_name)
     print("Pairwise sweep — byz_types:", table["byz_types"])
     print("Pairwise sweep — aggregations:", table["aggregations"])
     print("Pairwise sweep — n_runs (|byz| x |agg|):", n_runs)
+    print("Pairwise sweep — checkpoint_dir:", checkpoint_dir)
     print("Pairwise sweep — eval_iteration shape:", table["eval_iteration"].shape)
     print("Pairwise sweep — test_accuracy shape:", table["test_accuracy"].shape)
     print("Pairwise sweep — attack_success_rate shape:", table["attack_success_rate"].shape)

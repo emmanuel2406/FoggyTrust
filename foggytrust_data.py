@@ -20,6 +20,7 @@ class FoggyTrustPartition(object):
     group_workers: list
     worker_is_byzantine: list
     group_byzantine_counts: list
+    group_trusted_sizes: list
     fog_server_data: list
     fog_server_label: list
 
@@ -121,6 +122,27 @@ def _build_centered_label_quota(server_pc, num_labels, center_label, p):
     return quota
 
 
+def _build_group_trusted_sizes(
+    fog_server_pc,
+    num_groups,
+    fog_server_pc_mode="replicated",
+):
+    if fog_server_pc <= 0:
+        raise ValueError("fog_server_pc must be positive, got %d" % (fog_server_pc,))
+    if num_groups <= 0:
+        raise ValueError("num_groups must be positive, got %d" % (num_groups,))
+
+    mode = str(fog_server_pc_mode).strip().lower()
+    if mode == "replicated":
+        return [int(fog_server_pc) for _ in range(num_groups)]
+    if mode == "partitioned":
+        return _split_evenly(int(fog_server_pc), num_groups)
+    raise ValueError(
+        "fog_server_pc_mode must be one of {'replicated', 'partitioned'}, got %r"
+        % (fog_server_pc_mode,)
+    )
+
+
 def _sample_worker_group(label_id, bias, num_labels, rng):
     if not 0.0 <= bias <= 1.0:
         raise ValueError("bias must be in [0, 1], got %r" % (bias,))
@@ -162,6 +184,7 @@ def build_foggytrust_partition(
     dataset="FashionMNIST",
     seed=1,
     fog_server_pc=None,
+    fog_server_pc_mode="replicated",
     nbyz=0,
 ):
     fog_server_pc = server_pc if fog_server_pc is None else fog_server_pc
@@ -174,8 +197,13 @@ def build_foggytrust_partition(
 
     label_buckets = _collect_label_buckets(train_data, ctx, dataset, num_labels)
 
+    group_trusted_sizes = _build_group_trusted_sizes(
+        fog_server_pc,
+        num_labels,
+        fog_server_pc_mode=fog_server_pc_mode,
+    )
     group_label_quotas = [
-        _build_centered_label_quota(fog_server_pc, num_labels, group_id, p)
+        _build_centered_label_quota(group_trusted_sizes[group_id], num_labels, group_id, p)
         for group_id in range(num_labels)
     ]
 
@@ -250,6 +278,7 @@ def build_foggytrust_partition(
         group_workers=group_workers,
         worker_is_byzantine=worker_is_byzantine,
         group_byzantine_counts=group_byzantine_counts,
+        group_trusted_sizes=group_trusted_sizes,
         fog_server_data=fog_server_data,
         fog_server_label=fog_server_label,
     )

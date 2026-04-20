@@ -49,6 +49,28 @@ def build_arg_parser():
 def parse_args(argv=None):
     return build_arg_parser().parse_args(argv)
 
+
+def _load_checkpoint_if_present(net, args, ctx):
+    checkpoint_path = getattr(args, "checkpoint_path", None)
+    if not checkpoint_path:
+        return
+    if not os.path.exists(checkpoint_path):
+        print("Checkpoint not found, starting fresh:", checkpoint_path)
+        return
+    net.load_parameters(checkpoint_path, ctx=ctx)
+    print("Loaded checkpoint:", checkpoint_path)
+
+
+def _save_checkpoint_if_requested(net, args):
+    checkpoint_path = getattr(args, "checkpoint_path", None)
+    if not checkpoint_path:
+        return
+    checkpoint_dir = os.path.dirname(os.path.abspath(checkpoint_path))
+    if checkpoint_dir:
+        os.makedirs(checkpoint_dir, exist_ok=True)
+    net.save_parameters(checkpoint_path)
+    print("Saved checkpoint:", checkpoint_path)
+
 def get_device(device):
     # define the device to use
     if device == -1:
@@ -301,6 +323,7 @@ def main(args):
         net = get_net(args.net, num_outputs)
         # initialization
         net.collect_params().initialize(mx.init.Xavier(magnitude=2.24), force_reinit=True, ctx=ctx)
+        _load_checkpoint_if_present(net, args, ctx)
         # loss
         softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss()
 
@@ -412,6 +435,7 @@ def main(args):
             out["attack_success_rate"] = np.asarray(attack_succ_list, dtype=np.float64)
         else:
             out["attack_success_rate"] = None
+        _save_checkpoint_if_requested(net, args)
         return out
 
 if __name__ == "__main__":

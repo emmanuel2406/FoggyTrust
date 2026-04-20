@@ -38,6 +38,17 @@ def build_arg_parser():
         default=None,
         help="trusted fog-node dataset size per group; defaults to server_pc",
     )
+    parser.add_argument(
+        "--fog_server_pc_mode",
+        type=str,
+        default="replicated",
+        choices=("replicated", "partitioned"),
+        help=(
+            "trusted-data layout across fog groups: "
+            "'replicated' gives each group fog_server_pc points; "
+            "'partitioned' splits fog_server_pc across all groups"
+        ),
+    )
     return parser
 
 
@@ -94,10 +105,20 @@ def _order_group_gradients(worker_ids, worker_gradients, worker_is_byzantine):
     return malicious_gradients + honest_gradients, len(malicious_gradients)
 
 
-def _print_partition_summary(partition, fog_server_pc):
+def _print_partition_summary(partition, fog_server_pc, fog_server_pc_mode):
+    if fog_server_pc_mode == "partitioned":
+        print(
+            "FoggyTrust trusted-data mode: partitioned total=%d across %d groups"
+            % (fog_server_pc, len(partition.group_workers))
+        )
+    else:
+        print(
+            "FoggyTrust trusted-data mode: replicated per_group=%d (%d total across groups)"
+            % (fog_server_pc, int(sum(partition.group_trusted_sizes)))
+        )
     print(
-        "FoggyTrust groups fixed at startup: %d groups, trusted dataset size per group = %d"
-        % (len(partition.group_workers), fog_server_pc)
+        "FoggyTrust groups fixed at startup: %d groups"
+        % (len(partition.group_workers),)
     )
     for group_id, workers in enumerate(partition.group_workers):
         print(
@@ -106,7 +127,7 @@ def _print_partition_summary(partition, fog_server_pc):
                 group_id,
                 len(workers),
                 partition.group_byzantine_counts[group_id],
-                int(partition.fog_server_data[group_id].shape[0]),
+                partition.group_trusted_sizes[group_id],
             )
         )
 
@@ -125,6 +146,7 @@ def main(args):
         net.collect_params().initialize(
             mx.init.Xavier(magnitude=2.24), force_reinit=True, ctx=ctx
         )
+        tbp._load_checkpoint_if_present(net, args, ctx)
         softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss()
 
         test_acc_list = []
@@ -149,10 +171,11 @@ def main(args):
             dataset=args.dataset,
             seed=seed,
             fog_server_pc=args.fog_server_pc,
+            fog_server_pc_mode=args.fog_server_pc_mode,
             nbyz=args.nbyz,
         )
 
-        _print_partition_summary(partition, fog_server_pc)
+        _print_partition_summary(partition, fog_server_pc, args.fog_server_pc_mode)
 
         if args.byz_type == "scaling_attack":
             print(
@@ -266,6 +289,7 @@ def main(args):
             )
         else:
             out["attack_success_rate"] = None
+        tbp._save_checkpoint_if_requested(net, args)
         return out
 
 
