@@ -222,7 +222,9 @@ def main(args):
 
             fog_updates = []
             for group_id, worker_ids in enumerate(partition.group_workers):
-                # Stage 1: aggregate workers inside one fog family using that fog node's trusted root data.
+                # Stage 1 (clients -> fog): FLTrust-style aggregation.
+                # The fog node's trusted mini-dataset produces a root update used as the
+                # FLTrust baseline; worker updates are trust-weighted/norm-clipped against it.
                 ordered_group_gradients, local_byz_count = _order_group_gradients(
                     worker_ids,
                     worker_gradients,
@@ -243,7 +245,8 @@ def main(args):
                 )
                 fog_updates.append(fog_update)
 
-            # Stage 2: aggregate fog-node updates at the cloud and apply one global update.
+            # Stage 2 (fog -> cloud): FedAvg-style equal averaging across fog updates.
+            # (No data-size weighting here yet; see mean_fog_updates in foggytrust_aggregation.py.)
             global_update = foggytrust_aggregation.mean_fog_updates(fog_updates)
             foggytrust_aggregation.apply_update_vector(net, global_update, lr)
 

@@ -165,3 +165,87 @@ def krum(gradients, net, lr, f, byz):
     for j, (param) in enumerate(net.collect_params().values()):
         param.set_data(param.data() - lr * global_update[idx:(idx+param.data().size)].reshape(param.data().shape))
         idx += param.data().size
+
+
+class ScaffoldAggregator(object):
+    """
+    Stateful SCAFFOLD-style aggregator for this repo's one-step local update regime.
+
+    Notes
+    -----
+    - This simulator collects one local gradient per worker each round.
+    - The last submitted gradient is the server/root slot (kept for API compatibility),
+      but SCAFFOLD aggregation itself uses worker updates only.
+    - Byzantine hooks are preserved by applying ``byz`` before control-variate correction.
+    """
+
+    def __init__(self, num_workers, total_clients=None):
+        self.num_workers = int(num_workers)
+        self.total_clients = int(total_clients if total_clients is not None else num_workers)
+        if self.num_workers <= 0:
+            raise ValueError("num_workers must be positive")
+        if self.total_clients <= 0:
+            raise ValueError("total_clients must be positive")
+        self.c_global = None
+        self.c_local = None
+
+    def _ensure_state(self, template_vector, num_participants):
+        if self.c_global is None:
+            self.c_global = nd.zeros_like(template_vector)
+        if self.c_local is None:
+            self.c_local = [nd.zeros_like(template_vector) for _ in range(self.num_workers)]
+        if len(self.c_local) < num_participants:
+            self.c_local.extend(
+                [nd.zeros_like(template_vector) for _ in range(num_participants - len(self.c_local))]
+            )
+
+    @staticmethod
+    def _flatten_round_gradients(gradients):
+        return [nd.concat(*[xx.reshape((-1, 1)) for xx in x], dim=0) for x in gradients]
+
+    @staticmethod
+    def _apply_model_update(net, update_vector, lr):
+        idx = 0
+        for param in net.collect_params().values():
+            next_idx = idx + param.data().size
+            update_slice = update_vector[idx:next_idx].reshape(param.data().shape)
+            param.set_data(param.data() - lr * update_slice)
+            idx = next_idx
+
+    def step(self, gradients, net, lr, f, byz):
+        """
+        Perform one stateful SCAFFOLD aggregation/update step.
+
+        Parameters mirror stateless aggregators for drop-in integration.
+        """
+        if len(gradients) < 2:
+            raise ValueError(
+                "SCAFFOLD requires at least one worker gradient and one server/root gradient"
+            )
+
+        param_list = self._flatten_round_gradients(gradients)
+        param_list = byz(param_list, net, lr, f)
+        num_participants = len(param_list) - 1
+        if num_participants <= 0:
+            raise ValueError("no worker updates available for SCAFFOLD")
+
+        template = param_list[0]
+        self._ensure_state(template, num_participants)
+
+        corrected_updates = []
+        c_deltas = []
+        for worker_idx in range(num_participants):
+            worker_update = param_list[worker_idx]
+            corrected_updates.append(worker_update + self.c_global - self.c_local[worker_idx])
+
+            prev_c_local = self.c_local[worker_idx]
+            next_c_local = worker_update.copy()
+            c_deltas.append(next_c_local - prev_c_local)
+            self.c_local[worker_idx] = next_c_local
+
+        global_update = nd.mean(nd.concat(*corrected_updates, dim=1), axis=1, keepdims=True)
+        self._apply_model_update(net, global_update, lr)
+
+        scale = float(num_participants) / float(self.total_clients)
+        c_global_delta = nd.mean(nd.concat(*c_deltas, dim=1), axis=1, keepdims=True)
+        self.c_global = self.c_global + scale * c_global_delta

@@ -28,7 +28,7 @@ def build_arg_parser():
         help="aggregation rule",
         type=str,
         default="fltrust",
-        choices=("fltrust", "fedavg", "trimmed_mean", "median", "krum"),
+        choices=("fltrust", "fedavg", "trimmed_mean", "median", "krum", "scaffold"),
     )
     parser.add_argument("--p", help="bias probability of 1 in server sample", type=float, default=0.1)
     parser.add_argument(
@@ -305,8 +305,15 @@ def main(args):
     batch_size = args.batch_size
     num_inputs, num_outputs, num_labels = get_shapes(args.dataset)
     byz = get_byz(args.byz_type)
-    aggregate = get_aggregation(args.aggregation)
     num_workers = args.nworkers
+    if args.aggregation == "scaffold":
+        aggregate = None
+        scaffold_aggregator = nd_aggregation.ScaffoldAggregator(
+            num_workers=num_workers, total_clients=num_workers
+        )
+    else:
+        aggregate = get_aggregation(args.aggregation)
+        scaffold_aggregator = None
     lr = args.lr
     niter = args.niter
 
@@ -392,7 +399,10 @@ def main(args):
                 loss = softmax_cross_entropy(output, server_label)
             loss.backward()
             grad_list.append([param.grad().copy() for param in net.collect_params().values()])
-            aggregate(grad_list, net, lr, args.nbyz, byz)
+            if args.aggregation == "scaffold":
+                scaffold_aggregator.step(grad_list, net, lr, args.nbyz, byz)
+            else:
+                aggregate(grad_list, net, lr, args.nbyz, byz)
 
             del grad_list
             grad_list = []

@@ -12,14 +12,14 @@ import numpy as np
 from tqdm import tqdm
 
 # Must match test_byz_p.get_byz / byzantine handlers
-ALL_BYZ_TYPES = ("scaling_attack", "adaptive_attack", "krum_attack", "no", "label_flipping_attack", "trim_attack")
-# ALL_BYZ_TYPES = ("krum_attack","label_flipping_attack", "trim_attack")
+# ALL_BYZ_TYPES = ("scaling_attack", "adaptive_attack", "krum_attack", "no", "label_flipping_attack", "trim_attack")
+ALL_BYZ_TYPES = ("scaling_attack", "krum_attack", "no", "label_flipping_attack", "trim_attack")
 
 # ALL_BYZ_TYPES = ("label_flipping_attack", "krum_attack", "trim_attack")
 # Must match test_byz_p.build_arg_parser --aggregation choices
 # Set to () to skip flat aggregation sweeps.
-# ALL_AGGREGATIONS = ("fltrust", "fedavg", "trimmed_mean", "median", "krum")
-ALL_AGGREGATIONS = ()
+# ALL_AGGREGATIONS = ("fltrust", "fedavg", "trimmed_mean", "median", "krum", "scaffold")
+ALL_AGGREGATIONS = ("scaffold",)
 FOGGYTRUST_AGGREGATIONS = ("foggytrust",)
 
 # Thread-local sinks: ``contextlib.redirect_stdout`` swaps *global* sys.stdout, which breaks
@@ -70,6 +70,25 @@ def _checkpoint_path(checkpoint_dir, runner_name, sweep_name, *labels):
     parts = [runner_name, sweep_name] + [_sanitize_checkpoint_token(x) for x in labels]
     filename = "__".join(parts) + ".params"
     return os.path.join(checkpoint_dir, filename)
+
+
+def _is_partitioned_foggytrust(runner_name, args):
+    if runner_name != "foggytrust":
+        return False
+    mode = str(getattr(args, "fog_server_pc_mode", "replicated")).strip().lower()
+    return mode == "partitioned"
+
+
+def _runner_name_tag(runner_name, args):
+    if _is_partitioned_foggytrust(runner_name, args):
+        return "foggytrust_p"
+    return runner_name
+
+
+def _aggregation_name_tag(runner_name, aggregation, args):
+    if aggregation == "foggytrust" and _is_partitioned_foggytrust(runner_name, args):
+        return "foggytrust_p"
+    return aggregation
 
 
 def _tls_get_out_sink():
@@ -218,7 +237,8 @@ def _byz_task(spec):
     runner_name, runner_module, base_args, bt, log_dir, checkpoint_dir = spec
     args = copy.deepcopy(base_args)
     args.byz_type = bt
-    args.checkpoint_path = _checkpoint_path(checkpoint_dir, runner_name, "byz", bt)
+    runner_tag = _runner_name_tag(runner_name, args)
+    args.checkpoint_path = _checkpoint_path(checkpoint_dir, runner_tag, "byz", bt)
     if log_dir:
         log_path = os.path.join(log_dir, "%s.txt" % (bt,))
         with _redirect_stdout_stderr(log_path):
@@ -230,9 +250,11 @@ def _agg_task(spec):
     runner_name, runner_module, base_args, agg, log_dir, checkpoint_dir = spec
     args = copy.deepcopy(base_args)
     args.aggregation = agg
-    args.checkpoint_path = _checkpoint_path(checkpoint_dir, runner_name, "agg", agg)
+    runner_tag = _runner_name_tag(runner_name, args)
+    agg_tag = _aggregation_name_tag(runner_name, agg, args)
+    args.checkpoint_path = _checkpoint_path(checkpoint_dir, runner_tag, "agg", agg_tag)
     if log_dir:
-        log_path = os.path.join(log_dir, "%s.txt" % (agg,))
+        log_path = os.path.join(log_dir, "%s.txt" % (agg_tag,))
         with _redirect_stdout_stderr(log_path):
             return runner_module.main(args)
     return runner_module.main(args)
@@ -243,9 +265,11 @@ def _pair_task(spec):
     args = copy.deepcopy(base_args)
     args.byz_type = bt
     args.aggregation = agg
-    args.checkpoint_path = _checkpoint_path(checkpoint_dir, runner_name, "pair", bt, agg)
+    runner_tag = _runner_name_tag(runner_name, args)
+    agg_tag = _aggregation_name_tag(runner_name, agg, args)
+    args.checkpoint_path = _checkpoint_path(checkpoint_dir, runner_tag, "pair", bt, agg_tag)
     if log_dir:
-        log_path = os.path.join(log_dir, "%s__%s.txt" % (bt, agg))
+        log_path = os.path.join(log_dir, "%s__%s.txt" % (bt, agg_tag))
         with _redirect_stdout_stderr(log_path):
             return runner_module.main(args)
     return runner_module.main(args)
@@ -576,6 +600,34 @@ def build_pairwise_timeseries_table(
                     pbar.update(1)
 
     return _finalize_pairwise_table(byz_types, aggregations, outs)
+
+
+def build_scaffold_pairwise_timeseries_table(
+    base_args=None,
+    byz_types=None,
+    aggregations=None,
+    log_dir=None,
+    checkpoint_dir="checkpoints",
+    max_workers=None,
+    runner="flat",
+):
+    """
+    Encapsulated pairwise sweep for stateful SCAFFOLD aggregation.
+
+    Defaults to the flat runner and ``("scaffold",)`` aggregation while reusing the
+    existing pairwise output contract.
+    """
+    if aggregations is None:
+        aggregations = ("scaffold",)
+    return build_pairwise_timeseries_table(
+        base_args=base_args,
+        byz_types=byz_types,
+        aggregations=aggregations,
+        log_dir=log_dir,
+        checkpoint_dir=checkpoint_dir,
+        max_workers=max_workers,
+        runner=runner,
+    )
 
 
 if __name__ == "__main__":
