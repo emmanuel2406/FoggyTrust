@@ -122,6 +122,32 @@ def trimmed_mean(gradients, net, lr, f, byz):
         idx += param.data().size
 
 
+def median(gradients, net, lr, f, byz):
+    """
+    gradients: list of gradients. The last one is the server update.
+    net: model parameters.
+    lr: learning rate.
+    f: number of malicious clients. The first f clients are malicious.
+    byz: attack type.
+    """
+    param_list = [nd.concat(*[xx.reshape((-1, 1)) for xx in x], dim=0) for x in gradients]
+    param_list = byz(param_list, net, lr, f)
+    n = len(param_list) - 1
+    stacked = nd.concat(*[param_list[i] for i in range(n)], dim=1)
+    sorted_vals = nd.sort(stacked, axis=1)
+    mid_lo = (n - 1) // 2
+    mid_hi = n // 2
+    if mid_lo == mid_hi:
+        global_update = sorted_vals[:, mid_lo : mid_lo + 1]
+    else:
+        global_update = (sorted_vals[:, mid_lo : mid_lo + 1] + sorted_vals[:, mid_hi : mid_hi + 1]) / 2
+
+    idx = 0
+    for j, (param) in enumerate(net.collect_params().values()):
+        param.set_data(param.data() - lr * global_update[idx:(idx+param.data().size)].reshape(param.data().shape))
+        idx += param.data().size
+
+
 def krum(gradients, net, lr, f, byz):
     """
     gradients: list of gradients. The last one is the server update.
@@ -139,5 +165,3 @@ def krum(gradients, net, lr, f, byz):
     for j, (param) in enumerate(net.collect_params().values()):
         param.set_data(param.data() - lr * global_update[idx:(idx+param.data().size)].reshape(param.data().shape))
         idx += param.data().size
-
-# TODO: implement FedAvg (ER), Krum (TG), Trimmed-mean (ER), Median (ER)

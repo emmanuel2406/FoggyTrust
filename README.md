@@ -91,7 +91,7 @@ python test_byz_p.py --dataset FashionMNIST
 To run **every supported attack** with the **same** hyperparameters and collect test accuracy over time in a single table (for plotting or analysis), use:
 
 ```bash
-python test_byz_all.py
+python test_byz_all.py --dataset mnist --lr 0.01 --batch_size 32 --nworkers 100 --nbyz 20 
 ```
 
 Run this from the `FoggyTrust` directory (same as the other scripts). It sequentially calls `test_byz_p.main` for `no`, `trim_attack`, and `label_flipping_attack`, then prints array shapes for the stacked time series. **Command-line flags are the same as `test_byz_p.py`** (e.g. `--niter`, `--dataset`, `--gpu`); `--byz_type` is ignored here because each attack is run in turn. Example: `python test_byz_all.py --niter 30 --gpu -1`. For programmatic use, pass `base_args` into `build_byzantine_timeseries_table`.

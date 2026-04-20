@@ -97,7 +97,19 @@ def label_flipping_attack(v, net, lr, f):
 
 
 
-def scale_attack(v, net, lr, f):
+def scaling_poison_labels(labels, source_class, target_class):
+    """
+    Local objective for scaling / model-replacement: on malicious clients, replace
+    labels ``source_class`` with ``target_class`` so gradients push the global model
+    toward misclassifying source-class inputs as the target (FLTrust ASR definition).
+    ``labels`` are float32 class indices as in this repo's loaders.
+    """
+    src = float(source_class)
+    tgt = float(target_class)
+    return nd.where(labels == src, nd.ones_like(labels) * tgt, labels)
+
+
+def scaling_attack(v, net, lr, f):
     """
     Scaling / model-replacement style attack (Bagdasaryan et al.; see
     scrap/backdoor_federated_learning/training.py). After local training, adversaries
@@ -249,4 +261,3 @@ def adaptive_attack(v, net, lr, f):
 
     return v
 
-# TODO: implement Label-flipping (ER), Scale Attack (ER), Krum (TG), Trim Attack (TG), Adaptive attack (TG) 

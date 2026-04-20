@@ -28,9 +28,21 @@ def build_arg_parser():
         help="aggregation rule",
         type=str,
         default="fltrust",
-        choices=("fltrust", "fedavg", "trimmed_mean", "krum"),
+        choices=("fltrust", "fedavg", "trimmed_mean", "median", "krum"),
     )
     parser.add_argument("--p", help="bias probability of 1 in server sample", type=float, default=0.1)
+    parser.add_argument(
+        "--scaling_source_label",
+        type=int,
+        default=7,
+        help="true class of attacker-chosen target test points for scaling attack ASR",
+    )
+    parser.add_argument(
+        "--scaling_target_label",
+        type=int,
+        default=1,
+        help="attacker-chosen target label for scaling attack (train + ASR)",
+    )
     return parser
 
 
@@ -92,10 +104,58 @@ def evaluate_accuracy(data_iterator, net, ctx, trigger=False, target=None):
         acc.update(preds=predictions, labels=label)        
     return acc.get()[1]
 
+
+def evaluate_test_accuracy_and_scaling_asr(
+    data_iterator, net, ctx, asr_source_label, asr_target_label
+):
+    """
+    One full pass over the test loader: overall accuracy (mx.metric) plus scaling
+    attack success rate. Using a single pass avoids Gluon DataLoader quirks where
+    a second ``for`` over the same loader can misbehave, which produced unstable ASR.
+    ASR is in [0, 1] (a fraction; 1.0 means 100% of source-class test points predict
+    the target class, not an overflow).
+    """
+    acc = mx.metric.Accuracy()
+    src_int = int(asr_source_label)
+    tgt_int = int(asr_target_label)
+    total = 0
+    success = 0
+    for _, (data, label) in enumerate(data_iterator):
+        data = data.as_in_context(ctx)
+        label = label.as_in_context(ctx)
+        output = net(data)
+        predictions = nd.argmax(output, axis=1)
+        acc.update(preds=predictions, labels=label)
+        lb = np.rint(label.asnumpy().reshape(-1)).astype(np.int64)
+        pr = predictions.astype("int64").asnumpy().reshape(-1)
+        sel = lb == src_int
+        total += int(np.sum(sel))
+        success += int(np.sum(sel & (pr == tgt_int)))
+    acc_val = acc.get()[1]
+    if total <= 0:
+        return acc_val, float("nan")
+    rate = float(success) / float(total)
+    # Should hold exactly; clamp only against float noise if any downstream assumes [0,1]
+    return acc_val, min(1.0, max(0.0, rate))
+
+
+def evaluate_scaling_attack_success_rate(
+    data_iterator, net, ctx, source_label, target_label
+):
+    """
+    Attack success rate (FLTrust): among test examples whose true label is
+    ``source_label``, the fraction whose predicted class is ``target_label``.
+    """
+    _, asr = evaluate_test_accuracy_and_scaling_asr(
+        data_iterator, net, ctx, source_label, target_label
+    )
+    return asr
+
 AGGREGATION_FUNCS = {
     "fltrust": nd_aggregation.fltrust,
     "fedavg": nd_aggregation.fedavg,
     "trimmed_mean": nd_aggregation.trimmed_mean,
+    "median": nd_aggregation.median,
     "krum": nd_aggregation.krum,
 }
 
@@ -114,10 +174,10 @@ def get_byz(byz_type):
         return byzantine.trim_attack
     elif byz_type == 'label_flipping_attack' :
         return byzantine.label_flipping_attack
-    elif byz_type == 'scale_attack':
-        return byzantine.scale_attack
     elif byz_type == 'krum_attack':
         return byzantine.krum_attack
+    elif byz_type == 'scaling_attack':
+        return byzantine.scaling_attack
     elif byz_type == 'adaptive_attack':
         return byzantine.adaptive_attack
     else:
@@ -246,6 +306,7 @@ def main(args):
 
         grad_list = []
         test_acc_list = []
+        attack_succ_list = []
         eval_iteration = []
 
         # load the data
@@ -263,6 +324,19 @@ def main(args):
                                                                     server_pc=args.server_pc, p=args.p, dataset=args.dataset, seed=seed)
 
 
+        if args.byz_type == "scaling_attack":
+            print(
+                "Scaling attack: train with labels %d -> %d on Byzantine clients; "
+                "attack success rate = fraction of test images with true label %d "
+                "that the global model predicts as %d (FLTrust)."
+                % (
+                    args.scaling_source_label,
+                    args.scaling_target_label,
+                    args.scaling_source_label,
+                    args.scaling_target_label,
+                )
+            )
+
         # begin training
         for e in range(niter):
             for i in range(num_workers):
@@ -272,6 +346,12 @@ def main(args):
                     batch_label = each_worker_label[i][minibatch]
                     if args.byz_type == "label_flipping_attack" and i < args.nbyz:
                         batch_label = byzantine.flipped_labels_fltrust(batch_label, num_labels)
+                    elif args.byz_type == "scaling_attack" and i < args.nbyz:
+                        batch_label = byzantine.scaling_poison_labels(
+                            batch_label,
+                            args.scaling_source_label,
+                            args.scaling_target_label,
+                        )
                     loss = softmax_cross_entropy(output, batch_label)
 
                 loss.backward()
@@ -296,15 +376,43 @@ def main(args):
             
             # evaluate the model accuracy
             if (e + 1) % 10 == 0:
-                test_accuracy = evaluate_accuracy(test_data, net, ctx)
                 eval_iteration.append(e + 1)
-                test_acc_list.append(test_accuracy)
-                print("[%s - %s] Iteration %02d. Test_acc %0.4f" % (args.aggregation, args.byz_type, e, test_accuracy))
+                if args.byz_type == "scaling_attack":
+                    test_accuracy, asr = evaluate_test_accuracy_and_scaling_asr(
+                        test_data,
+                        net,
+                        ctx,
+                        args.scaling_source_label,
+                        args.scaling_target_label,
+                    )
+                    test_acc_list.append(test_accuracy)
+                    attack_succ_list.append(asr)
+                    print(
+                        "[%s - %s] Iteration %02d. Test_acc %0.4f  Attack_succ_rate %0.4f (src=%d tgt=%d)"
+                        % (
+                            args.aggregation,
+                            args.byz_type,
+                            e,
+                            test_accuracy,
+                            asr,
+                            args.scaling_source_label,
+                            args.scaling_target_label,
+                        )
+                    )
+                else:
+                    test_accuracy = evaluate_accuracy(test_data, net, ctx)
+                    test_acc_list.append(test_accuracy)
+                    print("[%s - %s] Iteration %02d. Test_acc %0.4f" % (args.aggregation, args.byz_type, e, test_accuracy))
 
-        return {
+        out = {
             "eval_iteration": np.asarray(eval_iteration, dtype=np.int64),
             "test_accuracy": np.asarray(test_acc_list, dtype=np.float64),
         }
+        if args.byz_type == "scaling_attack":
+            out["attack_success_rate"] = np.asarray(attack_succ_list, dtype=np.float64)
+        else:
+            out["attack_success_rate"] = None
+        return out
 
 if __name__ == "__main__":
     args = parse_args()
