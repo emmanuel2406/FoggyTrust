@@ -49,6 +49,16 @@ def build_arg_parser():
             "'partitioned' splits fog_server_pc across all groups"
         ),
     )
+    parser.add_argument(
+        "--foggy_aggregation",
+        type=str,
+        default="fedavg",
+        choices=foggytrust_aggregation.FOGGY_AGGREGATION_CHOICES,
+        help=(
+            "stage-2 (fog -> cloud) aggregation rule; "
+            "stage-1 (workers -> fog) always uses FLTrust"
+        ),
+    )
     return parser
 
 
@@ -176,6 +186,16 @@ def main(args):
         )
 
         _print_partition_summary(partition, fog_server_pc, args.fog_server_pc_mode)
+        num_fog_groups = len(partition.group_workers)
+        # Estimate fog-level adversarial count as groups containing at least one Byzantine worker.
+        fog_level_nbyz = int(
+            sum(1 for byz_count in partition.group_byzantine_counts if byz_count > 0)
+        )
+        fog_stage2_aggregator = foggytrust_aggregation.build_foggy_stage2_aggregator(
+            aggregation=args.foggy_aggregation,
+            num_fog_nodes=num_fog_groups,
+            fog_nbyz=fog_level_nbyz,
+        )
 
         if args.byz_type == "scaling_attack":
             print(
@@ -245,9 +265,8 @@ def main(args):
                 )
                 fog_updates.append(fog_update)
 
-            # Stage 2 (fog -> cloud): FedAvg-style equal averaging across fog updates.
-            # (No data-size weighting here yet; see mean_fog_updates in foggytrust_aggregation.py.)
-            global_update = foggytrust_aggregation.mean_fog_updates(fog_updates)
+            # Stage 2 (fog -> cloud): choose fog-level aggregation independently.
+            global_update = fog_stage2_aggregator.aggregate(fog_updates)
             foggytrust_aggregation.apply_update_vector(net, global_update, lr)
 
             if (e + 1) % 10 == 0:

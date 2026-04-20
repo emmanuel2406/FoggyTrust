@@ -13,14 +13,16 @@ from tqdm import tqdm
 
 # Must match test_byz_p.get_byz / byzantine handlers
 # ALL_BYZ_TYPES = ("scaling_attack", "adaptive_attack", "krum_attack", "no", "label_flipping_attack", "trim_attack")
-ALL_BYZ_TYPES = ("scaling_attack", "krum_attack", "no", "label_flipping_attack", "trim_attack")
+ALL_BYZ_TYPES = ("no", "krum_attack", "scaling_attack", "label_flipping_attack", "trim_attack")
 
 # ALL_BYZ_TYPES = ("label_flipping_attack", "krum_attack", "trim_attack")
 # Must match test_byz_p.build_arg_parser --aggregation choices
 # Set to () to skip flat aggregation sweeps.
 # ALL_AGGREGATIONS = ("fltrust", "fedavg", "trimmed_mean", "median", "krum", "scaffold")
 ALL_AGGREGATIONS = ("scaffold",)
-FOGGYTRUST_AGGREGATIONS = ("foggytrust",)
+# Must match test_foggytrust.build_arg_parser --foggy_aggregation choices.
+# Keep a single default to preserve prior one-run foggytrust sweep behavior.
+FOGGYTRUST_AGGREGATIONS = ("scaffold",)
 
 # Thread-local sinks: ``contextlib.redirect_stdout`` swaps *global* sys.stdout, which breaks
 # when ``ThreadPoolExecutor`` runs several experiments at once (all prints share one stream).
@@ -86,8 +88,8 @@ def _runner_name_tag(runner_name, args):
 
 
 def _aggregation_name_tag(runner_name, aggregation, args):
-    if aggregation == "foggytrust" and _is_partitioned_foggytrust(runner_name, args):
-        return "foggytrust_p"
+    if runner_name == "foggytrust":
+        return "foggytrust(%s)" % (aggregation,)
     return aggregation
 
 
@@ -249,7 +251,11 @@ def _byz_task(spec):
 def _agg_task(spec):
     runner_name, runner_module, base_args, agg, log_dir, checkpoint_dir = spec
     args = copy.deepcopy(base_args)
-    args.aggregation = agg
+    if runner_name == "foggytrust":
+        args.aggregation = "foggytrust"
+        args.foggy_aggregation = agg
+    else:
+        args.aggregation = agg
     runner_tag = _runner_name_tag(runner_name, args)
     agg_tag = _aggregation_name_tag(runner_name, agg, args)
     args.checkpoint_path = _checkpoint_path(checkpoint_dir, runner_tag, "agg", agg_tag)
@@ -264,7 +270,11 @@ def _pair_task(spec):
     runner_name, runner_module, base_args, bt, agg, log_dir, checkpoint_dir = spec
     args = copy.deepcopy(base_args)
     args.byz_type = bt
-    args.aggregation = agg
+    if runner_name == "foggytrust":
+        args.aggregation = "foggytrust"
+        args.foggy_aggregation = agg
+    else:
+        args.aggregation = agg
     runner_tag = _runner_name_tag(runner_name, args)
     agg_tag = _aggregation_name_tag(runner_name, agg, args)
     args.checkpoint_path = _checkpoint_path(checkpoint_dir, runner_tag, "pair", bt, agg_tag)
