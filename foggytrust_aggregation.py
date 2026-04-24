@@ -190,6 +190,51 @@ class ScaffoldFogAggregator(object):
         self.c_global = self.c_global + scale * c_global_delta
         return global_update
 
+    def state_dict(self):
+        if self.c_global is None or self.c_local is None:
+            return None
+        active_c_local = [value.asnumpy() for value in self.c_local]
+        if len(active_c_local) == 0:
+            return None
+        return {
+            "aggregator_kind": np.asarray(["fog_scaffold"], dtype=object),
+            "tensor_shape": np.asarray(self.c_global.shape, dtype=np.int64),
+            "num_fog_nodes": np.asarray([int(self.num_fog_nodes)], dtype=np.int64),
+            "total_fog_nodes": np.asarray([int(self.total_fog_nodes)], dtype=np.int64),
+            "c_global": self.c_global.asnumpy(),
+            "c_local_stack": np.stack(active_c_local, axis=0),
+        }
+
+    def load_state_dict(self, state, ctx):
+        if str(state["aggregator_kind"][0]) != "fog_scaffold":
+            raise ValueError("ScaffoldFogAggregator state kind mismatch")
+        if int(state["num_fog_nodes"][0]) != self.num_fog_nodes:
+            raise ValueError(
+                "ScaffoldFogAggregator fog-count mismatch: expected %d, got %d"
+                % (self.num_fog_nodes, int(state["num_fog_nodes"][0]))
+            )
+        if int(state["total_fog_nodes"][0]) != self.total_fog_nodes:
+            raise ValueError(
+                "ScaffoldFogAggregator total-fog mismatch: expected %d, got %d"
+                % (self.total_fog_nodes, int(state["total_fog_nodes"][0]))
+            )
+        saved_shape = tuple(int(x) for x in state["tensor_shape"].tolist())
+        c_global = nd.array(state["c_global"], ctx=ctx)
+        c_local_stack = state["c_local_stack"]
+        if tuple(c_global.shape) != saved_shape:
+            raise ValueError("ScaffoldFogAggregator c_global shape mismatch")
+        if c_local_stack.shape[0] != self.num_fog_nodes:
+            raise ValueError("ScaffoldFogAggregator c_local length mismatch")
+        self.c_global = c_global
+        self.c_local = []
+        for fog_idx in range(c_local_stack.shape[0]):
+            local_vec = nd.array(c_local_stack[fog_idx], ctx=ctx)
+            if tuple(local_vec.shape) != saved_shape:
+                raise ValueError(
+                    "ScaffoldFogAggregator c_local[%d] shape mismatch" % (fog_idx,)
+                )
+            self.c_local.append(local_vec)
+
 
 class FedAdamFogAggregator(object):
     """
@@ -209,6 +254,21 @@ class FedAdamFogAggregator(object):
             raise ValueError("update_vectors must not be empty")
         mean_update = nd.mean(nd.concat(*update_vectors, dim=1), axis=1, keepdims=True)
         return self.core.step(mean_update)
+
+    def state_dict(self):
+        core_state = self.core.state_dict()
+        if core_state is None:
+            return None
+        state = dict(core_state)
+        state["aggregator_kind"] = np.asarray(["fog_fedadam"], dtype=object)
+        return state
+
+    def load_state_dict(self, state, ctx):
+        if str(state["aggregator_kind"][0]) != "fog_fedadam":
+            raise ValueError("FedAdamFogAggregator state kind mismatch")
+        core_state = dict(state)
+        core_state["aggregator_kind"] = np.asarray(["fedadam_core"], dtype=object)
+        self.core.load_state_dict(core_state, ctx)
 
 
 class FoggyStage2Aggregator(object):
@@ -261,6 +321,26 @@ class FoggyStage2Aggregator(object):
         if self.aggregation == "fedadam":
             return self._fedadam.aggregate(update_vectors)
         raise NotImplementedError("Unknown foggy_aggregation: %r" % (self.aggregation,))
+
+    def state_dict(self):
+        if self.aggregation == "scaffold":
+            return self._scaffold.state_dict()
+        if self.aggregation == "fedadam":
+            return self._fedadam.state_dict()
+        return None
+
+    def load_state_dict(self, state, ctx):
+        if self.aggregation == "scaffold":
+            self._scaffold.load_state_dict(state, ctx)
+            return
+        if self.aggregation == "fedadam":
+            self._fedadam.load_state_dict(state, ctx)
+            return
+        if state is not None:
+            raise ValueError(
+                "Stateless foggy aggregation %r cannot load saved state"
+                % (self.aggregation,)
+            )
 
 
 def build_foggy_stage2_aggregator(

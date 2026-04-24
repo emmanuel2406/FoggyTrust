@@ -6,6 +6,7 @@ import numpy as np
 import random
 import argparse
 import byzantine
+import checkpoint_helper
 import os
 import sys
 
@@ -72,28 +73,6 @@ def build_arg_parser():
 
 def parse_args(argv=None):
     return build_arg_parser().parse_args(argv)
-
-
-def _load_checkpoint_if_present(net, args, ctx):
-    checkpoint_path = getattr(args, "checkpoint_path", None)
-    if not checkpoint_path:
-        return
-    if not os.path.exists(checkpoint_path):
-        print("Checkpoint not found, starting fresh:", checkpoint_path)
-        return
-    net.load_parameters(checkpoint_path, ctx=ctx)
-    print("Loaded checkpoint:", checkpoint_path)
-
-
-def _save_checkpoint_if_requested(net, args):
-    checkpoint_path = getattr(args, "checkpoint_path", None)
-    if not checkpoint_path:
-        return
-    checkpoint_dir = os.path.dirname(os.path.abspath(checkpoint_path))
-    if checkpoint_dir:
-        os.makedirs(checkpoint_dir, exist_ok=True)
-    net.save_parameters(checkpoint_path)
-    print("Saved checkpoint:", checkpoint_path)
 
 def get_device(device):
     # define the device to use
@@ -366,11 +345,14 @@ def main(args):
         net = get_net(args.net, num_outputs)
         # initialization
         net.collect_params().initialize(mx.init.Xavier(magnitude=2.24), force_reinit=True, ctx=ctx)
-        _load_checkpoint_if_present(net, args, ctx)
-        if args.aggregation == "fedadam" and getattr(args, "checkpoint_path", None):
-            print(
-                "FedAdam note: model checkpoints restore parameters only; "
-                "optimizer moments are not resumed."
+        checkpoint_helper.load_model_checkpoint_if_present(net, args, ctx)
+        if args.aggregation == "scaffold":
+            checkpoint_helper.load_aggregator_state_if_present(
+                scaffold_aggregator, args, ctx
+            )
+        elif args.aggregation == "fedadam":
+            checkpoint_helper.load_aggregator_state_if_present(
+                fedadam_aggregator, args, ctx
             )
         # loss
         softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss()
@@ -488,7 +470,15 @@ def main(args):
             out["attack_success_rate"] = np.asarray(attack_succ_list, dtype=np.float64)
         else:
             out["attack_success_rate"] = None
-        _save_checkpoint_if_requested(net, args)
+        checkpoint_helper.save_model_checkpoint_if_requested(net, args)
+        if args.aggregation == "scaffold":
+            checkpoint_helper.save_aggregator_state_if_requested(
+                scaffold_aggregator, args
+            )
+        elif args.aggregation == "fedadam":
+            checkpoint_helper.save_aggregator_state_if_requested(
+                fedadam_aggregator, args
+            )
         return out
 
 if __name__ == "__main__":

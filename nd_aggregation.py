@@ -46,6 +46,16 @@ def _apply_model_update(net, update_vector, lr):
         idx = next_idx
 
 
+def _nd_to_numpy(value):
+    return None if value is None else value.asnumpy()
+
+
+def _numpy_to_nd(value, ctx):
+    if value is None:
+        return None
+    return nd.array(value, ctx=ctx)
+
+
 class FedAdamCore(object):
     """
     Stateful FedAdam server optimizer over flattened update vectors.
@@ -92,6 +102,29 @@ class FedAdamCore(object):
             / (1.0 - np.power(self.beta_1, float(self.round_idx)))
         )
         return eta_norm * self.m_t / (nd.sqrt(self.v_t) + self.tau)
+
+    def state_dict(self):
+        if self.m_t is None or self.v_t is None:
+            return None
+        return {
+            "aggregator_kind": np.asarray(["fedadam_core"], dtype=object),
+            "tensor_shape": np.asarray(self.m_t.shape, dtype=np.int64),
+            "m_t": _nd_to_numpy(self.m_t),
+            "v_t": _nd_to_numpy(self.v_t),
+            "round_idx": np.asarray([int(self.round_idx)], dtype=np.int64),
+        }
+
+    def load_state_dict(self, state, ctx):
+        if str(state["aggregator_kind"][0]) != "fedadam_core":
+            raise ValueError("FedAdamCore state kind mismatch")
+        saved_shape = tuple(int(x) for x in state["tensor_shape"].tolist())
+        m_t = _numpy_to_nd(state["m_t"], ctx)
+        v_t = _numpy_to_nd(state["v_t"], ctx)
+        if tuple(m_t.shape) != saved_shape or tuple(v_t.shape) != saved_shape:
+            raise ValueError("FedAdamCore tensor shape mismatch")
+        self.m_t = m_t
+        self.v_t = v_t
+        self.round_idx = int(state["round_idx"][0])
 
 def fltrust(gradients, net, lr, f, byz):
     """
@@ -267,6 +300,27 @@ class FedAdamAggregator(object):
         adaptive_update = self.core.step(mean_update)
         _apply_model_update(net, adaptive_update, 1.0)
 
+    def state_dict(self):
+        core_state = self.core.state_dict()
+        if core_state is None:
+            return None
+        state = dict(core_state)
+        state["aggregator_kind"] = np.asarray(["flat_fedadam"], dtype=object)
+        state["num_workers"] = np.asarray([int(self.num_workers)], dtype=np.int64)
+        return state
+
+    def load_state_dict(self, state, ctx):
+        if str(state["aggregator_kind"][0]) != "flat_fedadam":
+            raise ValueError("FedAdamAggregator state kind mismatch")
+        if int(state["num_workers"][0]) != self.num_workers:
+            raise ValueError(
+                "FedAdamAggregator worker-count mismatch: expected %d, got %d"
+                % (self.num_workers, int(state["num_workers"][0]))
+            )
+        core_state = dict(state)
+        core_state["aggregator_kind"] = np.asarray(["fedadam_core"], dtype=object)
+        self.core.load_state_dict(core_state, ctx)
+
 
 class ScaffoldAggregator(object):
     """
@@ -345,3 +399,48 @@ class ScaffoldAggregator(object):
         scale = float(num_participants) / float(self.total_clients)
         c_global_delta = nd.mean(nd.concat(*c_deltas, dim=1), axis=1, keepdims=True)
         self.c_global = self.c_global + scale * c_global_delta
+
+    def state_dict(self):
+        if self.c_global is None or self.c_local is None:
+            return None
+        active_c_local = [_nd_to_numpy(value) for value in self.c_local]
+        if len(active_c_local) == 0:
+            return None
+        return {
+            "aggregator_kind": np.asarray(["flat_scaffold"], dtype=object),
+            "tensor_shape": np.asarray(self.c_global.shape, dtype=np.int64),
+            "num_workers": np.asarray([int(self.num_workers)], dtype=np.int64),
+            "total_clients": np.asarray([int(self.total_clients)], dtype=np.int64),
+            "c_global": _nd_to_numpy(self.c_global),
+            "c_local_stack": np.stack(active_c_local, axis=0),
+        }
+
+    def load_state_dict(self, state, ctx):
+        if str(state["aggregator_kind"][0]) != "flat_scaffold":
+            raise ValueError("ScaffoldAggregator state kind mismatch")
+        if int(state["num_workers"][0]) != self.num_workers:
+            raise ValueError(
+                "ScaffoldAggregator worker-count mismatch: expected %d, got %d"
+                % (self.num_workers, int(state["num_workers"][0]))
+            )
+        if int(state["total_clients"][0]) != self.total_clients:
+            raise ValueError(
+                "ScaffoldAggregator total-client mismatch: expected %d, got %d"
+                % (self.total_clients, int(state["total_clients"][0]))
+            )
+        saved_shape = tuple(int(x) for x in state["tensor_shape"].tolist())
+        c_global = _numpy_to_nd(state["c_global"], ctx)
+        c_local_stack = state["c_local_stack"]
+        if tuple(c_global.shape) != saved_shape:
+            raise ValueError("ScaffoldAggregator c_global shape mismatch")
+        if c_local_stack.shape[0] != self.num_workers:
+            raise ValueError("ScaffoldAggregator c_local length mismatch")
+        self.c_global = c_global
+        self.c_local = []
+        for worker_idx in range(c_local_stack.shape[0]):
+            local_vec = _numpy_to_nd(c_local_stack[worker_idx], ctx)
+            if tuple(local_vec.shape) != saved_shape:
+                raise ValueError(
+                    "ScaffoldAggregator c_local[%d] shape mismatch" % (worker_idx,)
+                )
+            self.c_local.append(local_vec)

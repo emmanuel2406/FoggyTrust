@@ -13,6 +13,7 @@ import mxnet as mx
 from mxnet import autograd, gluon
 
 import byzantine
+import checkpoint_helper
 import foggytrust_aggregation
 import foggytrust_data
 import test_byz_p as tbp
@@ -156,12 +157,7 @@ def main(args):
         net.collect_params().initialize(
             mx.init.Xavier(magnitude=2.24), force_reinit=True, ctx=ctx
         )
-        tbp._load_checkpoint_if_present(net, args, ctx)
-        if args.foggy_aggregation == "fedadam" and getattr(args, "checkpoint_path", None):
-            print(
-                "FedAdam note: model checkpoints restore parameters only; "
-                "optimizer moments are not resumed."
-            )
+        checkpoint_helper.load_model_checkpoint_if_present(net, args, ctx)
         softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss()
 
         test_acc_list = []
@@ -204,6 +200,9 @@ def main(args):
             fedadam_beta_1=args.fedadam_beta_1,
             fedadam_beta_2=args.fedadam_beta_2,
             fedadam_tau=args.fedadam_tau,
+        )
+        checkpoint_helper.load_aggregator_state_if_present(
+            fog_stage2_aggregator, args, ctx
         )
 
         if args.byz_type == "scaling_attack":
@@ -320,7 +319,10 @@ def main(args):
             )
         else:
             out["attack_success_rate"] = None
-        tbp._save_checkpoint_if_requested(net, args)
+        checkpoint_helper.save_model_checkpoint_if_requested(net, args)
+        checkpoint_helper.save_aggregator_state_if_requested(
+            fog_stage2_aggregator, args
+        )
         return out
 
 
