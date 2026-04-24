@@ -1,0 +1,44 @@
+SnapshotSafari resize auto-detected: 96x128
+Checkpoint not found, starting fresh: checkpoints/flat__pair__every_10pct_of_2000__no__fltrust.params
+[fltrust - no] Iteration 09. Test_acc 0.0707
+[fltrust - no] Iteration 19. Test_acc 0.6390
+[fltrust - no] Iteration 29. Test_acc 0.6390
+[fltrust - no] Iteration 39. Test_acc 0.6371
+[fltrust - no] Iteration 49. Test_acc 0.6357
+[fltrust - no] Iteration 59. Test_acc 0.6318
+[fltrust - no] Iteration 69. Test_acc 0.6276
+[fltrust - no] Iteration 79. Test_acc 0.6268
+[fltrust - no] Iteration 89. Test_acc 0.6250
+[fltrust - no] Iteration 99. Test_acc 0.6296
+[fltrust - no] Iteration 109. Test_acc 0.6268
+[fltrust - no] Iteration 119. Test_acc 0.6296
+[fltrust - no] Iteration 129. Test_acc 0.6289
+[fltrust - no] Iteration 139. Test_acc 0.6325
+[fltrust - no] Iteration 149. Test_acc 0.5966
+[fltrust - no] Iteration 159. Test_acc 0.6270
+[fltrust - no] Iteration 169. Test_acc 0.6175
+[fltrust - no] Iteration 179. Test_acc 0.6165
+[fltrust - no] Iteration 189. Test_acc 0.6188
+[fltrust - no] Iteration 199. Test_acc 0.6152
+Saved checkpoint: checkpoints/flat__pair__every_10pct_of_2000__no__fltrust__iter_000200.params
+[fltrust - no] Iteration 209. Test_acc 0.6270
+[fltrust - no] Iteration 219. Test_acc 0.6044
+[fltrust - no] Iteration 229. Test_acc 0.6198
+[fltrust - no] Iteration 239. Test_acc 0.6201
+[fltrust - no] Iteration 249. Test_acc 0.6236
+[fltrust - no] Iteration 259. Test_acc 0.6042
+[fltrust - no] Iteration 269. Test_acc 0.6012
+[fltrust - no] Iteration 279. Test_acc 0.6198
+[fltrust - no] Iteration 289. Test_acc 0.6140
+[fltrust - no] Iteration 299. Test_acc 0.6077
+[fltrust - no] Iteration 309. Test_acc 0.5732
+[fltrust - no] Iteration 319. Test_acc 0.6032
+[fltrust - no] Iteration 329. Test_acc 0.5859
+[fltrust - no] Iteration 339. Test_acc 0.6162
+[fltrust - no] Iteration 349. Test_acc 0.5817
+[fltrust - no] Iteration 359. Test_acc 0.5526
+[fltrust - no] Iteration 369. Test_acc 0.5762
+[fltrust - no] Iteration 379. Test_acc 0.6025
+[fltrust - no] Iteration 389. Test_acc 0.5908
+[fltrust - no] Iteration 399. Test_acc 0.5455
+Saved checkpoint: checkpoints/flat__pair__every_10pct_of_2000__no__fltrust__iter_000400.params
