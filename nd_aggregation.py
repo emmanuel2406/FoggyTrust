@@ -32,6 +32,67 @@ def _krum(samples, f):
     index = int(np.argmin(metric))
     return samples[index], index
 
+
+def _flatten_round_gradients(gradients):
+    return [nd.concat(*[xx.reshape((-1, 1)) for xx in x], dim=0) for x in gradients]
+
+
+def _apply_model_update(net, update_vector, lr):
+    idx = 0
+    for param in net.collect_params().values():
+        next_idx = idx + param.data().size
+        update_slice = update_vector[idx:next_idx].reshape(param.data().shape)
+        param.set_data(param.data() - lr * update_slice)
+        idx = next_idx
+
+
+class FedAdamCore(object):
+    """
+    Stateful FedAdam server optimizer over flattened update vectors.
+
+    The input is the already-aggregated update for the current round. The returned
+    vector is the adaptive server step, including the FedAdam server learning rate.
+    """
+
+    def __init__(self, eta=0.1, beta_1=0.9, beta_2=0.99, tau=1e-3):
+        self.eta = float(eta)
+        self.beta_1 = float(beta_1)
+        self.beta_2 = float(beta_2)
+        self.tau = float(tau)
+        if self.eta <= 0.0:
+            raise ValueError("eta must be positive")
+        if not 0.0 <= self.beta_1 < 1.0:
+            raise ValueError("beta_1 must be in [0, 1)")
+        if not 0.0 <= self.beta_2 < 1.0:
+            raise ValueError("beta_2 must be in [0, 1)")
+        if self.tau <= 0.0:
+            raise ValueError("tau must be positive")
+        self.m_t = None
+        self.v_t = None
+        self.round_idx = 0
+
+    def _ensure_state(self, template_vector):
+        if self.m_t is None:
+            self.m_t = nd.zeros_like(template_vector)
+        if self.v_t is None:
+            self.v_t = nd.zeros_like(template_vector)
+
+    def step(self, aggregated_update):
+        self._ensure_state(aggregated_update)
+        self.round_idx += 1
+
+        self.m_t = self.beta_1 * self.m_t + (1.0 - self.beta_1) * aggregated_update
+        self.v_t = self.beta_2 * self.v_t + (1.0 - self.beta_2) * nd.square(
+            aggregated_update
+        )
+
+        eta_norm = (
+            self.eta
+            * np.sqrt(1.0 - np.power(self.beta_2, float(self.round_idx)))
+            / (1.0 - np.power(self.beta_1, float(self.round_idx)))
+        )
+        return eta_norm * self.m_t / (nd.sqrt(self.v_t) + self.tau)
+
 def fltrust(gradients, net, lr, f, byz):
     """
     gradients: list of gradients. The last one is the server update.
@@ -41,7 +102,7 @@ def fltrust(gradients, net, lr, f, byz):
     byz: attack type.
     """
     
-    param_list = [nd.concat(*[xx.reshape((-1, 1)) for xx in x], dim=0) for x in gradients]
+    param_list = _flatten_round_gradients(gradients)
     # let the malicious clients (first f clients) perform the byzantine attack
     param_list = byz(param_list, net, lr, f)
     n = len(param_list) - 1
@@ -83,7 +144,7 @@ def fedavg(gradients, net, lr, f, byz):
     f: number of malicious clients. The first f clients are malicious.
     byz: attack type.
     """
-    param_list = [nd.concat(*[xx.reshape((-1, 1)) for xx in x], dim=0) for x in gradients]
+    param_list = _flatten_round_gradients(gradients)
     param_list = byz(param_list, net, lr, f)
     n = len(param_list) - 1
     stacked = nd.concat(*[param_list[i] for i in range(n)], dim=1)
@@ -102,7 +163,7 @@ def trimmed_mean(gradients, net, lr, f, byz):
     f: number of malicious clients. The first f clients are malicious.
     byz: attack type.
     """
-    param_list = [nd.concat(*[xx.reshape((-1, 1)) for xx in x], dim=0) for x in gradients]
+    param_list = _flatten_round_gradients(gradients)
     param_list = byz(param_list, net, lr, f)
     n = len(param_list) - 1
     # k >= f for robustness; need k < n/2 so n - 2k > 0
@@ -130,7 +191,7 @@ def median(gradients, net, lr, f, byz):
     f: number of malicious clients. The first f clients are malicious.
     byz: attack type.
     """
-    param_list = [nd.concat(*[xx.reshape((-1, 1)) for xx in x], dim=0) for x in gradients]
+    param_list = _flatten_round_gradients(gradients)
     param_list = byz(param_list, net, lr, f)
     n = len(param_list) - 1
     stacked = nd.concat(*[param_list[i] for i in range(n)], dim=1)
@@ -156,7 +217,7 @@ def krum(gradients, net, lr, f, byz):
     f: number of malicious clients. The first f clients are malicious.
     byz: attack type.
     """
-    param_list = [nd.concat(*[xx.reshape((-1, 1)) for xx in x], dim=0) for x in gradients]
+    param_list = _flatten_round_gradients(gradients)
     param_list = byz(param_list, net, lr, f)
     n = len(param_list) - 1
     global_update, _ = _krum([param_list[i] for i in range(n)], f)
@@ -165,6 +226,46 @@ def krum(gradients, net, lr, f, byz):
     for j, (param) in enumerate(net.collect_params().values()):
         param.set_data(param.data() - lr * global_update[idx:(idx+param.data().size)].reshape(param.data().shape))
         idx += param.data().size
+
+
+class FedAdamAggregator(object):
+    """
+    Stateful FedAdam aggregator for this repo's one-step local update regime.
+
+    Notes
+    -----
+    - Worker gradients are averaged uniformly, matching the current simulator's
+      existing aggregation convention.
+    - The final server/root slot is ignored for the FedAdam server step, just
+      as other non-FLTrust aggregators ignore it.
+    - The FedAdam core returns an adaptive server update vector, which is then
+      subtracted directly from the model parameters.
+    """
+
+    def __init__(self, num_workers, eta=0.1, beta_1=0.9, beta_2=0.99, tau=1e-3):
+        self.num_workers = int(num_workers)
+        if self.num_workers <= 0:
+            raise ValueError("num_workers must be positive")
+        self.core = FedAdamCore(
+            eta=eta, beta_1=beta_1, beta_2=beta_2, tau=tau
+        )
+
+    def step(self, gradients, net, lr, f, byz):
+        if len(gradients) < 2:
+            raise ValueError(
+                "FedAdam requires at least one worker gradient and one server/root gradient"
+            )
+
+        param_list = _flatten_round_gradients(gradients)
+        param_list = byz(param_list, net, lr, f)
+        num_participants = len(param_list) - 1
+        if num_participants <= 0:
+            raise ValueError("no worker updates available for FedAdam")
+
+        stacked = nd.concat(*[param_list[i] for i in range(num_participants)], dim=1)
+        mean_update = nd.mean(stacked, axis=1, keepdims=True)
+        adaptive_update = self.core.step(mean_update)
+        _apply_model_update(net, adaptive_update, 1.0)
 
 
 class ScaffoldAggregator(object):
@@ -201,16 +302,11 @@ class ScaffoldAggregator(object):
 
     @staticmethod
     def _flatten_round_gradients(gradients):
-        return [nd.concat(*[xx.reshape((-1, 1)) for xx in x], dim=0) for x in gradients]
+        return _flatten_round_gradients(gradients)
 
     @staticmethod
     def _apply_model_update(net, update_vector, lr):
-        idx = 0
-        for param in net.collect_params().values():
-            next_idx = idx + param.data().size
-            update_slice = update_vector[idx:next_idx].reshape(param.data().shape)
-            param.set_data(param.data() - lr * update_slice)
-            idx = next_idx
+        _apply_model_update(net, update_vector, lr)
 
     def step(self, gradients, net, lr, f, byz):
         """

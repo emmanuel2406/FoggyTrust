@@ -28,9 +28,33 @@ def build_arg_parser():
         help="aggregation rule",
         type=str,
         default="fltrust",
-        choices=("fltrust", "fedavg", "trimmed_mean", "median", "krum", "scaffold"),
+        choices=("fltrust", "fedavg", "trimmed_mean", "median", "krum", "scaffold", "fedadam"),
     )
     parser.add_argument("--p", help="bias probability of 1 in server sample", type=float, default=0.1)
+    parser.add_argument(
+        "--fedadam_eta",
+        type=float,
+        default=0.1,
+        help="FedAdam server-side learning rate",
+    )
+    parser.add_argument(
+        "--fedadam_beta_1",
+        type=float,
+        default=0.9,
+        help="FedAdam first-moment decay",
+    )
+    parser.add_argument(
+        "--fedadam_beta_2",
+        type=float,
+        default=0.99,
+        help="FedAdam second-moment decay",
+    )
+    parser.add_argument(
+        "--fedadam_tau",
+        type=float,
+        default=1e-3,
+        help="FedAdam adaptivity stabilizer",
+    )
     parser.add_argument(
         "--scaling_source_label",
         type=int,
@@ -311,9 +335,21 @@ def main(args):
         scaffold_aggregator = nd_aggregation.ScaffoldAggregator(
             num_workers=num_workers, total_clients=num_workers
         )
+        fedadam_aggregator = None
+    elif args.aggregation == "fedadam":
+        aggregate = None
+        scaffold_aggregator = None
+        fedadam_aggregator = nd_aggregation.FedAdamAggregator(
+            num_workers=num_workers,
+            eta=args.fedadam_eta,
+            beta_1=args.fedadam_beta_1,
+            beta_2=args.fedadam_beta_2,
+            tau=args.fedadam_tau,
+        )
     else:
         aggregate = get_aggregation(args.aggregation)
         scaffold_aggregator = None
+        fedadam_aggregator = None
     lr = args.lr
     niter = args.niter
 
@@ -331,6 +367,11 @@ def main(args):
         # initialization
         net.collect_params().initialize(mx.init.Xavier(magnitude=2.24), force_reinit=True, ctx=ctx)
         _load_checkpoint_if_present(net, args, ctx)
+        if args.aggregation == "fedadam" and getattr(args, "checkpoint_path", None):
+            print(
+                "FedAdam note: model checkpoints restore parameters only; "
+                "optimizer moments are not resumed."
+            )
         # loss
         softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss()
 
@@ -401,6 +442,8 @@ def main(args):
             grad_list.append([param.grad().copy() for param in net.collect_params().values()])
             if args.aggregation == "scaffold":
                 scaffold_aggregator.step(grad_list, net, lr, args.nbyz, byz)
+            elif args.aggregation == "fedadam":
+                fedadam_aggregator.step(grad_list, net, lr, args.nbyz, byz)
             else:
                 aggregate(grad_list, net, lr, args.nbyz, byz)
 

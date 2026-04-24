@@ -5,6 +5,7 @@ if not hasattr(np, "bool"):
     np.bool = bool
 
 from mxnet import nd
+import nd_aggregation
 
 FOGGY_AGGREGATION_CHOICES = (
     "fedavg",
@@ -12,6 +13,7 @@ FOGGY_AGGREGATION_CHOICES = (
     "median",
     "krum",
     "scaffold",
+    "fedadam",
 )
 
 
@@ -189,10 +191,39 @@ class ScaffoldFogAggregator(object):
         return global_update
 
 
+class FedAdamFogAggregator(object):
+    """
+    Stateful FedAdam cloud aggregator over already-flattened fog updates.
+
+    The incoming fog updates are averaged uniformly before the FedAdam server
+    optimizer transforms them into one adaptive cloud update vector.
+    """
+
+    def __init__(self, eta=0.1, beta_1=0.9, beta_2=0.99, tau=1e-3):
+        self.core = nd_aggregation.FedAdamCore(
+            eta=eta, beta_1=beta_1, beta_2=beta_2, tau=tau
+        )
+
+    def aggregate(self, update_vectors):
+        if not update_vectors:
+            raise ValueError("update_vectors must not be empty")
+        mean_update = nd.mean(nd.concat(*update_vectors, dim=1), axis=1, keepdims=True)
+        return self.core.step(mean_update)
+
+
 class FoggyStage2Aggregator(object):
     """Selector/factory wrapper for fog -> cloud aggregation."""
 
-    def __init__(self, aggregation, num_fog_nodes, fog_nbyz=0):
+    def __init__(
+        self,
+        aggregation,
+        num_fog_nodes,
+        fog_nbyz=0,
+        fedadam_eta=0.1,
+        fedadam_beta_1=0.9,
+        fedadam_beta_2=0.99,
+        fedadam_tau=1e-3,
+    ):
         aggregation_name = str(aggregation).strip().lower()
         if aggregation_name not in FOGGY_AGGREGATION_CHOICES:
             raise NotImplementedError(
@@ -203,9 +234,17 @@ class FoggyStage2Aggregator(object):
         self.num_fog_nodes = int(num_fog_nodes)
         self.fog_nbyz = int(max(0, fog_nbyz))
         self._scaffold = None
+        self._fedadam = None
         if self.aggregation == "scaffold":
             self._scaffold = ScaffoldFogAggregator(
                 num_fog_nodes=self.num_fog_nodes, total_fog_nodes=self.num_fog_nodes
+            )
+        if self.aggregation == "fedadam":
+            self._fedadam = FedAdamFogAggregator(
+                eta=fedadam_eta,
+                beta_1=fedadam_beta_1,
+                beta_2=fedadam_beta_2,
+                tau=fedadam_tau,
             )
 
     def aggregate(self, update_vectors):
@@ -219,12 +258,28 @@ class FoggyStage2Aggregator(object):
             return krum_fog_updates(update_vectors, self.fog_nbyz)
         if self.aggregation == "scaffold":
             return self._scaffold.aggregate(update_vectors)
+        if self.aggregation == "fedadam":
+            return self._fedadam.aggregate(update_vectors)
         raise NotImplementedError("Unknown foggy_aggregation: %r" % (self.aggregation,))
 
 
-def build_foggy_stage2_aggregator(aggregation, num_fog_nodes, fog_nbyz=0):
+def build_foggy_stage2_aggregator(
+    aggregation,
+    num_fog_nodes,
+    fog_nbyz=0,
+    fedadam_eta=0.1,
+    fedadam_beta_1=0.9,
+    fedadam_beta_2=0.99,
+    fedadam_tau=1e-3,
+):
     return FoggyStage2Aggregator(
-        aggregation=aggregation, num_fog_nodes=num_fog_nodes, fog_nbyz=fog_nbyz
+        aggregation=aggregation,
+        num_fog_nodes=num_fog_nodes,
+        fog_nbyz=fog_nbyz,
+        fedadam_eta=fedadam_eta,
+        fedadam_beta_1=fedadam_beta_1,
+        fedadam_beta_2=fedadam_beta_2,
+        fedadam_tau=fedadam_tau,
     )
 
 
