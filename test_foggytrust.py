@@ -205,6 +205,10 @@ def main(args):
             aggregation=args.foggy_aggregation,
             num_fog_nodes=num_fog_groups,
             fog_nbyz=fog_level_nbyz,
+            fedadam_eta=args.fedadam_eta,
+            fedadam_beta_1=args.fedadam_beta_1,
+            fedadam_beta_2=args.fedadam_beta_2,
+            fedadam_tau=args.fedadam_tau,
         )
 
         if args.byz_type == "scaling_attack":
