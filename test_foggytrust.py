@@ -97,7 +97,9 @@ def _snapshot_gradients(net, data, label, loss_fn):
         output = net(data)
         loss = loss_fn(output, label)
     loss.backward()
-    return [param.grad().copy() for param in net.collect_params().values()]
+    # Reuse the flat-runner-safe collector so params with grad_req='null'
+    # (e.g. BatchNorm running stats in ResNet-20) are represented as zeros.
+    return tbp._collect_param_grads_for_round(net)
 
 
 def _sample_worker_minibatch(data, label, batch_size):
@@ -168,7 +170,7 @@ def main(args):
             args.dataset,
             snapshot_num_labels=dataset_meta.get("num_labels"),
         )
-        net = tbp.get_net(args.net, num_outputs)
+        net = tbp.get_net(args.net, num_outputs, dataset=args.dataset)
         net.collect_params().initialize(
             mx.init.Xavier(magnitude=2.24), force_reinit=True, ctx=ctx
         )
@@ -193,6 +195,8 @@ def main(args):
             fog_server_pc_mode=args.fog_server_pc_mode,
             nbyz=args.nbyz,
             fog_num_groups=args.fog_num_groups,
+            snapshot_train_samples=dataset_meta.get("snapshot_train_samples"),
+            snapshot_projects=dataset_meta.get("snapshot_projects"),
         )
 
         _print_partition_summary(partition, fog_server_pc, args.fog_server_pc_mode)

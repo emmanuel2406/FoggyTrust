@@ -313,10 +313,23 @@ def load_snapshot_safari_data(args, batch_size=256, last_batch="rollover"):
         images_root,
         target_hw,
     )
+    # Keep deterministic sample order for downstream project-aware partitioning.
     train_data = mx.gluon.data.DataLoader(
-        train_dataset, batch_size=int(batch_size), shuffle=True, last_batch=last_batch
+        train_dataset, batch_size=int(batch_size), shuffle=False, last_batch=last_batch
     )
     test_data = mx.gluon.data.DataLoader(
         test_dataset, batch_size=int(batch_size), shuffle=False, last_batch=last_batch
     )
-    return train_data, test_data, {"num_labels": int(manifest["num_labels"])}
+    snapshot_projects = []
+    seen_projects = set()
+    for rel_path, _ in manifest["train_samples"]:
+        project_code = str(rel_path).split("/", 1)[0].upper()
+        if project_code in seen_projects:
+            continue
+        seen_projects.add(project_code)
+        snapshot_projects.append(project_code)
+    return train_data, test_data, {
+        "num_labels": int(manifest["num_labels"]),
+        "snapshot_train_samples": manifest["train_samples"],
+        "snapshot_projects": snapshot_projects,
+    }

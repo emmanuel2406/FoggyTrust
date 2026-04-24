@@ -1,2 +1,8 @@
 SnapshotSafari resize auto-detected: 96x128
 Checkpoint not found, starting fresh: checkpoints/foggytrust__pair__every_10pct_of_1000__no__foggytrust_fedavg.params
+Snapshot train_data yielded 11776/12000 samples; using emitted subset (likely due to DataLoader last_batch='rollover').
+FoggyTrust trusted-data mode: replicated per_group=100 (300 total across groups)
+FoggyTrust groups fixed at startup: 3 groups
+  fog_group=0 workers=30 byzantine=6 trusted_points=100
+  fog_group=1 workers=30 byzantine=6 trusted_points=100
+  fog_group=2 workers=30 byzantine=6 trusted_points=100

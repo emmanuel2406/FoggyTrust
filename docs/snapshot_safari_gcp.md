@@ -98,6 +98,8 @@ Then use `gcloud storage rsync` as above for selected project folders.
 
 ## 5) Run a Snapshot Safari experiment
 
+FoggyTrust uses one fog node per selected Snapshot sub-dataset project (for `KAR,KRU,SER`, this is 3 fog groups: one per biome/domain).
+
 ```bash
 python test_byz_all.py \
   --runner foggytrust \
@@ -105,6 +107,7 @@ python test_byz_all.py \
   --snapshot_metadata_path data/snapshot/snapshot_safari_2024_metadata.json \
   --snapshot_images_root data/snapshot/images \
   --snapshot_subset_projects KAR,KRU,SER \
+  --fog_num_groups 3 \
   --snapshot_min_category_frequency 20 \
   --snapshot_max_train_samples 12000 \
   --snapshot_max_test_samples 3000 \
