@@ -160,6 +160,40 @@ def get_device(device):
     else:
         ctx = mx.gpu(device)
     return ctx
+
+
+def get_net(requested_net, num_outputs=10, dataset=None):
+    """
+    Backward-compatible model factory used by older callers (e.g. test_foggytrust).
+
+    Prefer dataset-aware construction when ``dataset`` is provided; otherwise honor
+    the explicit ``requested_net`` model type.
+    """
+    if dataset is not None:
+        return model_helper.build_model(dataset, requested_net, num_outputs)
+    net_key = str(requested_net).strip().lower()
+    if net_key == "cnn":
+        return model_helper.get_cnn(num_outputs=num_outputs)
+    if net_key in ("resnet20", "resnet", "cifar_resnet20_v1"):
+        return model_helper.get_resnet20(num_outputs=num_outputs, pretrained=False)
+    raise NotImplementedError("Unknown network type: %r" % (requested_net,))
+
+
+def _collect_param_grads_for_round(net):
+    """
+    Collect one gradient tensor per model parameter in deterministic order.
+
+    Some params (e.g., BatchNorm running stats in ResNet-20) are non-trainable and
+    have ``grad_req='null'``; emit zeros for those slots so flattened gradient
+    vectors remain aligned with ``net.collect_params()`` for downstream aggregation.
+    """
+    grads = []
+    for param in net.collect_params().values():
+        if param.grad_req == "null":
+            grads.append(nd.zeros_like(param.data()))
+        else:
+            grads.append(param.grad().copy())
+    return grads
     
 def _reshape_sample(x, ctx):
     x_ctx = x.as_in_context(ctx)
@@ -188,9 +222,26 @@ def get_shapes(dataset, snapshot_num_labels=None):
         raise NotImplementedError
     return num_inputs, num_outputs, num_labels
 
+
+def _predictions_from_logits(output):
+    """
+    Convert model logits to class-index predictions for both batched and
+    single-sample outputs.
+    """
+    if len(output.shape) <= 1:
+        return nd.argmax(output, axis=0).reshape((1,))
+    return nd.argmax(output, axis=1)
+
+
+def _labels_to_indices(label):
+    """Convert labels to a flat integer class-index vector."""
+    return nd.round(label).astype("int64").reshape((-1,))
+
+
 def evaluate_accuracy(data_iterator, net, ctx, trigger=False, target=None):
     # evaluate the (attack) accuracy of the model
-    acc = mx.metric.Accuracy()
+    total = 0
+    correct = 0
     for i, (data, label) in enumerate(data_iterator):
         data = data.as_in_context(ctx)
         label = label.as_in_context(ctx)
@@ -198,11 +249,15 @@ def evaluate_accuracy(data_iterator, net, ctx, trigger=False, target=None):
         # if trigger:
         #     data, label, remaining_idx, add_backdoor(data, label, trigger, target)
         output = net(data)
-        predictions = nd.argmax(output, axis=1)                
+        predictions = _predictions_from_logits(output).astype("int64").reshape((-1,))
         predictions = predictions[remaining_idx]
-        label = label[remaining_idx]
-        acc.update(preds=predictions, labels=label)        
-    return acc.get()[1]
+        label_idx = _labels_to_indices(label)[remaining_idx]
+        matches = (predictions == label_idx).astype("int32")
+        correct += int(nd.sum(matches).asscalar())
+        total += int(matches.shape[0])
+    if total <= 0:
+        return float("nan")
+    return float(correct) / float(total)
 
 
 def evaluate_test_accuracy_and_scaling_asr(
@@ -215,23 +270,27 @@ def evaluate_test_accuracy_and_scaling_asr(
     ASR is in [0, 1] (a fraction; 1.0 means 100% of source-class test points predict
     the target class, not an overflow).
     """
-    acc = mx.metric.Accuracy()
     src_int = int(asr_source_label)
     tgt_int = int(asr_target_label)
+    total_seen = 0
+    total_correct = 0
     total = 0
     success = 0
     for _, (data, label) in enumerate(data_iterator):
         data = data.as_in_context(ctx)
         label = label.as_in_context(ctx)
         output = net(data)
-        predictions = nd.argmax(output, axis=1)
-        acc.update(preds=predictions, labels=label)
-        lb = np.rint(label.asnumpy().reshape(-1)).astype(np.int64)
-        pr = predictions.astype("int64").asnumpy().reshape(-1)
+        predictions = _predictions_from_logits(output).astype("int64").reshape((-1,))
+        label_idx = _labels_to_indices(label)
+        matches = (predictions == label_idx).astype("int32")
+        total_correct += int(nd.sum(matches).asscalar())
+        total_seen += int(matches.shape[0])
+        lb = label_idx.asnumpy().reshape(-1)
+        pr = predictions.asnumpy().reshape(-1)
         sel = lb == src_int
         total += int(np.sum(sel))
         success += int(np.sum(sel & (pr == tgt_int)))
-    acc_val = acc.get()[1]
+    acc_val = float("nan") if total_seen <= 0 else float(total_correct) / float(total_seen)
     if total <= 0:
         return acc_val, float("nan")
     rate = float(success) / float(total)
@@ -500,7 +559,7 @@ def main(args):
 
                 loss.backward()
 
-                grad_list.append([param.grad().copy() for param in net.collect_params().values()])
+                grad_list.append(_collect_param_grads_for_round(net))
 
             # nd_aggregation.* expect len(grad_list) == n_workers + 1; the last slot is the
             # server reference update (used by fltrust; trailing row is ignored by fedavg / trimmed_mean).
@@ -515,7 +574,7 @@ def main(args):
                 output = net(server_data)
                 loss = softmax_cross_entropy(output, server_label)
             loss.backward()
-            grad_list.append([param.grad().copy() for param in net.collect_params().values()])
+            grad_list.append(_collect_param_grads_for_round(net))
             if args.aggregation == "scaffold":
                 scaffold_aggregator.step(grad_list, net, lr, args.nbyz, byz)
             elif args.aggregation == "fedadam":

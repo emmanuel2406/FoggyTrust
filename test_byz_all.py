@@ -2,8 +2,10 @@
 from __future__ import print_function
 
 import copy
+import glob
 import importlib
 import os
+import re
 import sys
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -21,11 +23,11 @@ ALL_BYZ_TYPES = ("no",)
 # Must match test_byz_p.build_arg_parser --aggregation choices
 # Set to () to skip flat aggregation sweeps.
 # ALL_AGGREGATIONS = ("fltrust", "fedavg", "trimmed_mean", "median", "krum", "scaffold")
-ALL_AGGREGATIONS = ("fedavg","fltrust")
+ALL_AGGREGATIONS = ("fltrust","fedavg",)
 
 # Must match test_foggytrust.build_arg_parser --foggy_aggregation choices.
 # Keep a single default to preserve prior one-run foggytrust sweep behavior.
-FOGGYTRUST_AGGREGATIONS = ("scaffold",)
+FOGGYTRUST_AGGREGATIONS = ("fedavg",)
 
 # Thread-local sinks: ``contextlib.redirect_stdout`` swaps *global* sys.stdout, which breaks
 # when ``ThreadPoolExecutor`` runs several experiments at once (all prints share one stream).
@@ -72,13 +74,61 @@ def _checkpoint_path(checkpoint_dir, runner_name, sweep_name, niter, *labels):
     if not checkpoint_dir:
         return None
     os.makedirs(checkpoint_dir, exist_ok=True)
-    parts = [
+    prefix_parts = [
         runner_name,
         sweep_name,
-        "every_10pct_of_%d" % (int(niter),),
-    ] + [_sanitize_checkpoint_token(x) for x in labels]
-    filename = "__".join(parts) + ".params"
-    return os.path.join(checkpoint_dir, filename)
+    ]
+    label_parts = [_sanitize_checkpoint_token(x) for x in labels]
+    requested_parts = prefix_parts + ["every_10pct_of_%d" % (int(niter),)] + label_parts
+    requested_base = os.path.join(checkpoint_dir, "__".join(requested_parts) + ".params")
+
+    # Preferred path for this exact niter schedule.
+    requested_stem, requested_ext = os.path.splitext(requested_base)
+    if os.path.exists(requested_base) or glob.glob("%s__iter_*%s" % (requested_stem, requested_ext)):
+        return requested_base
+
+    # Fallback: reuse the latest checkpoint family for the same run signature
+    # (runner/sweep/labels) even when niter changed since the previous launch.
+    family_prefix = "__".join(prefix_parts + ["every_10pct_of_*"] + label_parts)
+    cand_pattern = os.path.join(checkpoint_dir, family_prefix + "__iter_*.params")
+    best_iter = -1
+    best_base = None
+    for cand_path in glob.glob(cand_pattern):
+        m = re.search(r"__iter_(\d+)\.params$", cand_path)
+        if m is None:
+            continue
+        cand_iter = int(m.group(1))
+        if cand_iter > best_iter:
+            best_iter = cand_iter
+            best_base = re.sub(r"__iter_\d+\.params$", ".params", cand_path)
+    if best_base is not None:
+        print(
+            "Using existing checkpoint family for resume:",
+            best_base,
+            "(latest iter %d)" % (best_iter,),
+        )
+        return best_base
+    return requested_base
+
+
+def _checkpoint_will_resume(checkpoint_path, niter):
+    if not checkpoint_path:
+        return False
+    if os.path.exists(checkpoint_path):
+        # Legacy single-file checkpoints.
+        return True
+    base, ext = os.path.splitext(checkpoint_path)
+    max_iter = None if niter is None else int(niter)
+    for cand in glob.glob("%s__iter_*%s" % (base, ext)):
+        stem = os.path.splitext(cand)[0]
+        m = re.search(r"__iter_(\d+)$", stem)
+        if m is None:
+            continue
+        it = int(m.group(1))
+        if max_iter is not None and it > max_iter:
+            continue
+        return True
+    return False
 
 
 def _is_partitioned_foggytrust(runner_name, args):
@@ -160,8 +210,9 @@ def _ensure_thread_local_stdio():
 class _redirect_stdout_stderr(object):
     """Per-thread: stdout/stderr go to *path* for the duration of the context manager."""
 
-    def __init__(self, path):
+    def __init__(self, path, append=False):
         self.path = path
+        self.append = bool(append)
         self._logf = None
         self._prev_out = None
         self._prev_err = None
@@ -169,7 +220,8 @@ class _redirect_stdout_stderr(object):
     def __enter__(self):
         os.makedirs(os.path.dirname(os.path.abspath(self.path)) or ".", exist_ok=True)
         _ensure_thread_local_stdio()
-        self._logf = open(self.path, "w", buffering=1)
+        mode = "a" if self.append else "w"
+        self._logf = open(self.path, mode, buffering=1)
         self._prev_out = getattr(_tls_log_out, "sink", None)
         self._prev_err = getattr(_tls_log_err, "sink", None)
         _tls_log_out.sink = self._logf
@@ -243,9 +295,10 @@ def _byz_task(spec):
     args.checkpoint_path = _checkpoint_path(
         checkpoint_dir, runner_tag, "byz", args.niter, bt
     )
+    append_log = _checkpoint_will_resume(args.checkpoint_path, args.niter)
     if log_dir:
         log_path = os.path.join(log_dir, "%s.txt" % (bt,))
-        with _redirect_stdout_stderr(log_path):
+        with _redirect_stdout_stderr(log_path, append=append_log):
             return runner_module.main(args)
     return runner_module.main(args)
 
@@ -264,9 +317,10 @@ def _agg_task(spec):
     args.checkpoint_path = _checkpoint_path(
         checkpoint_dir, runner_tag, "agg", args.niter, agg_tag
     )
+    append_log = _checkpoint_will_resume(args.checkpoint_path, args.niter)
     if log_dir:
         log_path = os.path.join(log_dir, "%s.txt" % (agg_tag,))
-        with _redirect_stdout_stderr(log_path):
+        with _redirect_stdout_stderr(log_path, append=append_log):
             return runner_module.main(args)
     return runner_module.main(args)
 
@@ -286,9 +340,10 @@ def _pair_task(spec):
     args.checkpoint_path = _checkpoint_path(
         checkpoint_dir, runner_tag, "pair", args.niter, bt, agg_tag
     )
+    append_log = _checkpoint_will_resume(args.checkpoint_path, args.niter)
     if log_dir:
         log_path = os.path.join(log_dir, "%s__%s.txt" % (bt, agg_tag))
-        with _redirect_stdout_stderr(log_path):
+        with _redirect_stdout_stderr(log_path, append=append_log):
             return runner_module.main(args)
     return runner_module.main(args)
 

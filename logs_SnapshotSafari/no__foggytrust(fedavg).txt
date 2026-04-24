@@ -1,0 +1,2 @@
+SnapshotSafari resize auto-detected: 96x128
+Checkpoint not found, starting fresh: checkpoints/foggytrust__pair__every_10pct_of_1000__no__foggytrust_fedavg.params
