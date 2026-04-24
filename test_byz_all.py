@@ -10,16 +10,19 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import numpy as np
 from tqdm import tqdm
+import model_helper
 
 # Must match test_byz_p.get_byz / byzantine handlers
 # ALL_BYZ_TYPES = ("scaling_attack", "adaptive_attack", "krum_attack", "no", "label_flipping_attack", "trim_attack")
-ALL_BYZ_TYPES = ("no", "krum_attack", "scaling_attack", "label_flipping_attack", "trim_attack")
+# ALL_BYZ_TYPES = ("no", "krum_attack", "scaling_attack", "label_flipping_attack", "trim_attack")
+ALL_BYZ_TYPES = ("no",)
 
 # ALL_BYZ_TYPES = ("label_flipping_attack", "krum_attack", "trim_attack")
 # Must match test_byz_p.build_arg_parser --aggregation choices
 # Set to () to skip flat aggregation sweeps.
 # ALL_AGGREGATIONS = ("fltrust", "fedavg", "trimmed_mean", "median", "krum", "scaffold")
-ALL_AGGREGATIONS = ("scaffold",)
+ALL_AGGREGATIONS = ("fedavg","fltrust")
+
 # Must match test_foggytrust.build_arg_parser --foggy_aggregation choices.
 # Keep a single default to preserve prior one-run foggytrust sweep behavior.
 FOGGYTRUST_AGGREGATIONS = ("scaffold",)
@@ -65,11 +68,15 @@ def _sanitize_checkpoint_token(value):
     return "".join(safe).strip("_") or "run"
 
 
-def _checkpoint_path(checkpoint_dir, runner_name, sweep_name, *labels):
+def _checkpoint_path(checkpoint_dir, runner_name, sweep_name, niter, *labels):
     if not checkpoint_dir:
         return None
     os.makedirs(checkpoint_dir, exist_ok=True)
-    parts = [runner_name, sweep_name] + [_sanitize_checkpoint_token(x) for x in labels]
+    parts = [
+        runner_name,
+        sweep_name,
+        "every_10pct_of_%d" % (int(niter),),
+    ] + [_sanitize_checkpoint_token(x) for x in labels]
     filename = "__".join(parts) + ".params"
     return os.path.join(checkpoint_dir, filename)
 
@@ -186,16 +193,14 @@ def _extract_script_flags_from_argv(argv):
     Returns
     -------
     new_argv : list
-    log_dir : str or None
-        Default ``"logs"``; set ``--log_dir`` / ``FOGGYTRUST_LOG_DIR`` overrides.
     max_workers : int or None
         ``None`` → ``ThreadPoolExecutor`` default pool size; ``1`` → sequential runs.
     runner : str
         ``flat`` (``test_byz_p``) or ``foggytrust`` (``test_foggytrust``).
     checkpoint_dir : str or None
-        Default ``"checkpoints"``. Each sweep run loads/saves one matching checkpoint file.
+        Default ``"checkpoints"``. Each sweep run loads/saves checkpoints every 10%
+        of that run's ``niter``.
     """
-    log_dir = os.environ.get("FOGGYTRUST_LOG_DIR") or "logs"
     checkpoint_dir = os.environ.get("FOGGYTRUST_CHECKPOINT_DIR") or "checkpoints"
     max_workers = None
     runner = os.environ.get("FOGGYTRUST_RUNNER") or "flat"
@@ -203,13 +208,7 @@ def _extract_script_flags_from_argv(argv):
     i = 0
     while i < len(argv):
         a = argv[i]
-        if a == "--log_dir" and i + 1 < len(argv):
-            log_dir = argv[i + 1]
-            i += 2
-        elif a.startswith("--log_dir="):
-            log_dir = a.split("=", 1)[1]
-            i += 1
-        elif a == "--max_workers" and i + 1 < len(argv):
+        if a == "--max_workers" and i + 1 < len(argv):
             max_workers = int(argv[i + 1])
             i += 2
         elif a.startswith("--max_workers="):
@@ -232,15 +231,18 @@ def _extract_script_flags_from_argv(argv):
             i += 1
     if checkpoint_dir and checkpoint_dir.lower() in ("none", "null", "off", "false", "0"):
         checkpoint_dir = None
-    return out, log_dir, checkpoint_dir, max_workers, runner
+    return out, checkpoint_dir, max_workers, runner
 
 
 def _byz_task(spec):
     runner_name, runner_module, base_args, bt, log_dir, checkpoint_dir = spec
     args = copy.deepcopy(base_args)
+    args.net = model_helper.resolve_model_type(args.dataset, args.net)
     args.byz_type = bt
     runner_tag = _runner_name_tag(runner_name, args)
-    args.checkpoint_path = _checkpoint_path(checkpoint_dir, runner_tag, "byz", bt)
+    args.checkpoint_path = _checkpoint_path(
+        checkpoint_dir, runner_tag, "byz", args.niter, bt
+    )
     if log_dir:
         log_path = os.path.join(log_dir, "%s.txt" % (bt,))
         with _redirect_stdout_stderr(log_path):
@@ -251,6 +253,7 @@ def _byz_task(spec):
 def _agg_task(spec):
     runner_name, runner_module, base_args, agg, log_dir, checkpoint_dir = spec
     args = copy.deepcopy(base_args)
+    args.net = model_helper.resolve_model_type(args.dataset, args.net)
     if runner_name == "foggytrust":
         args.aggregation = "foggytrust"
         args.foggy_aggregation = agg
@@ -258,7 +261,9 @@ def _agg_task(spec):
         args.aggregation = agg
     runner_tag = _runner_name_tag(runner_name, args)
     agg_tag = _aggregation_name_tag(runner_name, agg, args)
-    args.checkpoint_path = _checkpoint_path(checkpoint_dir, runner_tag, "agg", agg_tag)
+    args.checkpoint_path = _checkpoint_path(
+        checkpoint_dir, runner_tag, "agg", args.niter, agg_tag
+    )
     if log_dir:
         log_path = os.path.join(log_dir, "%s.txt" % (agg_tag,))
         with _redirect_stdout_stderr(log_path):
@@ -269,6 +274,7 @@ def _agg_task(spec):
 def _pair_task(spec):
     runner_name, runner_module, base_args, bt, agg, log_dir, checkpoint_dir = spec
     args = copy.deepcopy(base_args)
+    args.net = model_helper.resolve_model_type(args.dataset, args.net)
     args.byz_type = bt
     if runner_name == "foggytrust":
         args.aggregation = "foggytrust"
@@ -277,7 +283,9 @@ def _pair_task(spec):
         args.aggregation = agg
     runner_tag = _runner_name_tag(runner_name, args)
     agg_tag = _aggregation_name_tag(runner_name, agg, args)
-    args.checkpoint_path = _checkpoint_path(checkpoint_dir, runner_tag, "pair", bt, agg_tag)
+    args.checkpoint_path = _checkpoint_path(
+        checkpoint_dir, runner_tag, "pair", args.niter, bt, agg_tag
+    )
     if log_dir:
         log_path = os.path.join(log_dir, "%s__%s.txt" % (bt, agg_tag))
         with _redirect_stdout_stderr(log_path):
@@ -453,12 +461,9 @@ def build_byzantine_timeseries_table(
         ``--byz_type`` is overwritten per attack).
     byz_types : sequence of str, optional
         Attack identifiers accepted by ``test_byz_p.get_byz``. Defaults to ``ALL_BYZ_TYPES``.
-    log_dir : str or None, optional
-        If set (e.g. ``"log"``), each run's stdout/stderr is written to
-        ``os.path.join(log_dir, "<byz_type>.txt")`` (e.g. ``log/trim_attack.txt``).
     checkpoint_dir : str or None, optional
-        If set, each run loads/saves params at
-        ``os.path.join(checkpoint_dir, "<runner>__byz__<byz_type>.params")``.
+        If set, each run loads/saves params at paths like
+        ``os.path.join(checkpoint_dir, "<runner>__byz__every_10pct_of_<niter>__<byz_type>__iter_<k>.params")``.
     max_workers : int or None, optional
         ``1`` runs jobs sequentially. ``None`` uses a thread pool (default size)
         and runs one ``test_byz_p.main`` per attack in parallel.
@@ -513,8 +518,8 @@ def build_aggregation_timeseries_table(
     log_dir : str or None, optional
         If set, each run's stdout/stderr goes to ``os.path.join(log_dir, "<aggregation>.txt")``.
     checkpoint_dir : str or None, optional
-        If set, each run loads/saves params at
-        ``os.path.join(checkpoint_dir, "<runner>__agg__<aggregation>.params")``.
+        If set, each run loads/saves params at paths like
+        ``os.path.join(checkpoint_dir, "<runner>__agg__every_10pct_of_<niter>__<aggregation>__iter_<k>.params")``.
     max_workers : int or None, optional
         Same semantics as ``build_byzantine_timeseries_table``.
     runner : :str, optional
@@ -641,11 +646,11 @@ def build_scaffold_pairwise_timeseries_table(
 
 
 if __name__ == "__main__":
-    argv_rest, log_dir, checkpoint_dir, max_workers, runner = _extract_script_flags_from_argv(
-        sys.argv[1:]
-    )
+    argv_rest, checkpoint_dir, max_workers, runner = _extract_script_flags_from_argv(sys.argv[1:])
     runner_name, runner_module = _resolve_runner_module(runner)
     base_args = runner_module.parse_args(argv_rest)
+    log_dir = "logs_%s" % (base_args.dataset,)
+    os.makedirs(log_dir, exist_ok=True)
     byz_types = tuple(ALL_BYZ_TYPES)
     aggs = tuple(_default_aggregations_for_runner(runner_name))
 

@@ -40,9 +40,14 @@ def _split_evenly(total, parts):
 
 
 def _reshape_sample(x, ctx, dataset):
-    if dataset == "FashionMNIST" or dataset == "mnist":
-        return x.as_in_context(ctx).reshape(1, 1, 28, 28)
-    raise NotImplementedError
+    x_ctx = x.as_in_context(ctx)
+    if len(x_ctx.shape) == 2:
+        return x_ctx.reshape(1, 1, int(x_ctx.shape[0]), int(x_ctx.shape[1]))
+    if len(x_ctx.shape) == 3:
+        return x_ctx.reshape(1, int(x_ctx.shape[0]), int(x_ctx.shape[1]), int(x_ctx.shape[2]))
+    if len(x_ctx.shape) == 4:
+        return x_ctx
+    raise ValueError("Unsupported sample shape for %s: %r" % (dataset, tuple(x_ctx.shape)))
 
 
 def _build_group_workers(num_workers, num_groups):
@@ -93,14 +98,16 @@ def _build_even_byzantine_layout(group_workers, nbyz):
     return worker_is_byzantine, group_byzantine_counts
 
 
-def _build_centered_label_quota(server_pc, num_labels, center_label, p):
+def _build_centered_label_quota(server_pc, num_labels, group_id, num_groups, p):
     if not 0.0 <= p <= 1.0:
         raise ValueError("p must be in [0, 1], got %r" % (p,))
     if server_pc <= 0:
         raise ValueError("server_pc must be positive, got %d" % (server_pc,))
-    if not 0 <= center_label < num_labels:
+    if num_groups <= 0:
+        raise ValueError("num_groups must be positive, got %d" % (num_groups,))
+    if not 0 <= group_id < num_groups:
         raise ValueError(
-            "center_label must be in [0, %d), got %d" % (num_labels, center_label)
+            "group_id must be in [0, %d), got %d" % (num_groups, group_id)
         )
 
     quota = [0 for _ in range(num_labels)]
@@ -108,13 +115,22 @@ def _build_centered_label_quota(server_pc, num_labels, center_label, p):
         quota[0] = server_pc
         return quota
 
-    # Mirror the original trusted-root construction, but center it on one fog family.
-    center_count = int(server_pc * p)
-    center_count = min(server_pc, max(0, center_count))
-    quota[center_label] = center_count
+    # Center each fog node on its label family; with fewer fog groups than labels, a group
+    # owns labels by modulo (label_id % num_groups == group_id).
+    center_labels = [label for label in range(num_labels) if (label % num_groups) == group_id]
+    if not center_labels:
+        center_labels = [group_id % num_labels]
+
+    center_count = min(server_pc, max(0, int(server_pc * p)))
+    center_base = center_count // len(center_labels)
+    center_extra = center_count % len(center_labels)
+    for idx, label in enumerate(center_labels):
+        quota[label] = center_base + (1 if idx < center_extra else 0)
 
     remaining = server_pc - center_count
-    other_labels = [label for label in range(num_labels) if label != center_label]
+    other_labels = [label for label in range(num_labels) if label not in set(center_labels)]
+    if not other_labels:
+        return quota
     base = remaining // len(other_labels)
     extra = remaining % len(other_labels)
     for idx, label in enumerate(other_labels):
@@ -143,16 +159,19 @@ def _build_group_trusted_sizes(
     )
 
 
-def _sample_worker_group(label_id, bias, num_labels, rng):
+def _sample_worker_group(label_id, bias, num_labels, num_groups, rng):
     if not 0.0 <= bias <= 1.0:
         raise ValueError("bias must be in [0, 1], got %r" % (bias,))
-    if num_labels == 1 or bias >= 1.0:
-        return int(label_id)
+    if num_groups <= 0:
+        raise ValueError("num_groups must be positive, got %d" % (num_groups,))
+    center_group = int(label_id) % int(num_groups)
+    if num_groups == 1 or bias >= 1.0:
+        return center_group
 
     # Samples mostly stay with their label-family group, with the remaining mass spread uniformly.
-    probabilities = np.full((num_labels,), (1.0 - bias) / float(num_labels - 1))
-    probabilities[int(label_id)] = bias
-    return int(rng.choice(num_labels, p=probabilities))
+    probabilities = np.full((num_groups,), (1.0 - bias) / float(num_groups - 1))
+    probabilities[center_group] = bias
+    return int(rng.choice(num_groups, p=probabilities))
 
 
 def _collect_label_buckets(train_data, ctx, dataset, num_labels):
@@ -186,11 +205,15 @@ def build_foggytrust_partition(
     fog_server_pc=None,
     fog_server_pc_mode="replicated",
     nbyz=0,
+    fog_num_groups=None,
 ):
     fog_server_pc = server_pc if fog_server_pc is None else fog_server_pc
+    num_groups = num_labels if fog_num_groups is None else int(fog_num_groups)
+    if num_groups <= 0:
+        raise ValueError("fog_num_groups must be positive, got %r" % (fog_num_groups,))
     rng = _get_rng(seed)
 
-    group_workers, worker_group = _build_group_workers(num_workers, num_labels)
+    group_workers, worker_group = _build_group_workers(num_workers, num_groups)
     worker_is_byzantine, group_byzantine_counts = _build_even_byzantine_layout(
         group_workers, nbyz
     )
@@ -199,23 +222,25 @@ def build_foggytrust_partition(
 
     group_trusted_sizes = _build_group_trusted_sizes(
         fog_server_pc,
-        num_labels,
+        num_groups,
         fog_server_pc_mode=fog_server_pc_mode,
     )
     group_label_quotas = [
-        _build_centered_label_quota(group_trusted_sizes[group_id], num_labels, group_id, p)
-        for group_id in range(num_labels)
+        _build_centered_label_quota(
+            group_trusted_sizes[group_id], num_labels, group_id, num_groups, p
+        )
+        for group_id in range(num_groups)
     ]
 
-    fog_server_data = [[] for _ in range(num_labels)]
-    fog_server_label = [[] for _ in range(num_labels)]
-    grouped_worker_samples = [[] for _ in range(num_labels)]
+    fog_server_data = [[] for _ in range(num_groups)]
+    fog_server_label = [[] for _ in range(num_groups)]
+    grouped_worker_samples = [[] for _ in range(num_groups)]
 
     for label_id, bucket in enumerate(label_buckets):
         rng.shuffle(bucket)
         cursor = 0
 
-        for group_id in range(num_labels):
+        for group_id in range(num_groups):
             take_count = group_label_quotas[group_id][label_id]
             if cursor + take_count > len(bucket):
                 raise ValueError(
@@ -235,7 +260,7 @@ def build_foggytrust_partition(
 
         # After reserving trusted data, the remaining client samples are assigned to one persistent fog family.
         for x, y in bucket[cursor:]:
-            assigned_group = _sample_worker_group(label_id, bias, num_labels, rng)
+            assigned_group = _sample_worker_group(label_id, bias, num_labels, num_groups, rng)
             grouped_worker_samples[assigned_group].append((x, y))
 
     worker_data = [[] for _ in range(num_workers)]
@@ -255,7 +280,7 @@ def build_foggytrust_partition(
             worker_data[worker_id].append(x)
             worker_label[worker_id].append(y)
 
-    for group_id in range(num_labels):
+    for group_id in range(num_groups):
         fog_server_data[group_id] = _concat_ndarrays(
             fog_server_data[group_id], "fog_server_data[%d]" % (group_id,)
         )

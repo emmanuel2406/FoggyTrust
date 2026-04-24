@@ -1,0 +1,2 @@
+SnapshotSafari resize auto-detected: 96x128
+Checkpoint not found, starting fresh: checkpoints/flat__pair__every_10pct_of_2000__no__fltrust.params

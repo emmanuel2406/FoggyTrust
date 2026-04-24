@@ -59,6 +59,12 @@ def build_arg_parser():
             "stage-1 (workers -> fog) always uses FLTrust"
         ),
     )
+    parser.add_argument(
+        "--fog_num_groups",
+        type=int,
+        default=None,
+        help="number of fog groups; defaults to num_labels when unset",
+    )
     return parser
 
 
@@ -145,31 +151,34 @@ def _print_partition_summary(partition, fog_server_pc, fog_server_pc_mode):
 def main(args):
     ctx = tbp.get_device(args.gpu)
     batch_size = args.batch_size
-    _, num_outputs, num_labels = tbp.get_shapes(args.dataset)
     byz = tbp.get_byz(args.byz_type)
     lr = args.lr / batch_size
     niter = args.niter
     fog_server_pc = args.server_pc if args.fog_server_pc is None else args.fog_server_pc
 
     with ctx:
-        net = tbp.get_net(args.net, num_outputs)
-        net.collect_params().initialize(
-            mx.init.Xavier(magnitude=2.24), force_reinit=True, ctx=ctx
-        )
-        tbp._load_checkpoint_if_present(net, args, ctx)
-        softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss()
-
-        test_acc_list = []
-        attack_succ_list = []
-        eval_iteration = []
-
         seed = args.nrepeats
         if seed > 0:
             mx.random.seed(seed)
             random.seed(seed)
             np.random.seed(seed)
 
-        train_data, test_data = tbp.load_data(args.dataset)
+        train_data, test_data, dataset_meta = tbp.load_data(args.dataset, args=args)
+        _, num_outputs, num_labels = tbp.get_shapes(
+            args.dataset,
+            snapshot_num_labels=dataset_meta.get("num_labels"),
+        )
+        net = tbp.get_net(args.net, num_outputs)
+        net.collect_params().initialize(
+            mx.init.Xavier(magnitude=2.24), force_reinit=True, ctx=ctx
+        )
+        start_iter = tbp._load_checkpoint_if_present(net, args, ctx)
+        softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss()
+
+        test_acc_list = []
+        attack_succ_list = []
+        eval_iteration = []
+
         partition = foggytrust_data.build_foggytrust_partition(
             train_data,
             args.bias,
@@ -183,6 +192,7 @@ def main(args):
             fog_server_pc=args.fog_server_pc,
             fog_server_pc_mode=args.fog_server_pc_mode,
             nbyz=args.nbyz,
+            fog_num_groups=args.fog_num_groups,
         )
 
         _print_partition_summary(partition, fog_server_pc, args.fog_server_pc_mode)
@@ -210,7 +220,7 @@ def main(args):
                 )
             )
 
-        for e in range(niter):
+        for e in range(start_iter, niter):
             worker_gradients = [None for _ in range(args.nworkers)]
 
             for worker_id in range(args.nworkers):
@@ -300,6 +310,7 @@ def main(args):
                         "[foggytrust - %s] Iteration %02d. Test_acc %0.4f"
                         % (args.byz_type, e, test_accuracy)
                     )
+            tbp._save_checkpoint_if_requested(net, args, e + 1)
 
         out = {
             "eval_iteration": np.asarray(eval_iteration, dtype=np.int64),
@@ -311,7 +322,6 @@ def main(args):
             )
         else:
             out["attack_success_rate"] = None
-        tbp._save_checkpoint_if_requested(net, args)
         return out
 
 

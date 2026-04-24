@@ -6,8 +6,12 @@ import numpy as np
 import random
 import argparse
 import byzantine
+import glob
 import os
+import re
 import sys
+import safari_helper
+import model_helper
 
 def build_arg_parser():
     parser = argparse.ArgumentParser()
@@ -43,6 +47,7 @@ def build_arg_parser():
         default=1,
         help="attacker-chosen target label for scaling attack (train + ASR)",
     )
+    safari_helper.add_snapshot_safari_args(parser)
     return parser
 
 
@@ -50,26 +55,79 @@ def parse_args(argv=None):
     return build_arg_parser().parse_args(argv)
 
 
+_CHECKPOINT_ITER_RE = re.compile(r"__iter_(\d+)$")
+
+
+def _checkpoint_path_for_iteration(checkpoint_path, iteration):
+    base, ext = os.path.splitext(checkpoint_path)
+    return "%s__iter_%06d%s" % (base, int(iteration), ext)
+
+
+def _checkpoint_schedule(niter):
+    niter_i = max(1, int(niter))
+    return {
+        max(1, min(niter_i, int(round(float(niter_i) * (k / 10.0)))))
+        for k in range(1, 11)
+    }
+
+
+def _is_checkpoint_iteration(iteration, niter):
+    if iteration is None:
+        return False
+    return int(iteration) in _checkpoint_schedule(niter)
+
+
+def _find_latest_checkpoint(checkpoint_path, niter):
+    base, ext = os.path.splitext(checkpoint_path)
+    best_iter = -1
+    best_path = None
+    pattern = "%s__iter_*%s" % (base, ext)
+    for cand in glob.glob(pattern):
+        stem = os.path.splitext(cand)[0]
+        m = _CHECKPOINT_ITER_RE.search(stem)
+        if not m:
+            continue
+        it = int(m.group(1))
+        if niter is not None and it > int(niter):
+            continue
+        if it > best_iter:
+            best_iter = it
+            best_path = cand
+    return best_path, best_iter
+
+
 def _load_checkpoint_if_present(net, args, ctx):
     checkpoint_path = getattr(args, "checkpoint_path", None)
     if not checkpoint_path:
-        return
-    if not os.path.exists(checkpoint_path):
+        return 0
+    latest_path, latest_iter = _find_latest_checkpoint(
+        checkpoint_path, getattr(args, "niter", None)
+    )
+    if latest_path is None:
+        if os.path.exists(checkpoint_path):
+            # Backward compatibility with legacy single-file checkpoints.
+            net.load_parameters(checkpoint_path, ctx=ctx)
+            print("Loaded legacy checkpoint:", checkpoint_path)
+            return 0
         print("Checkpoint not found, starting fresh:", checkpoint_path)
-        return
-    net.load_parameters(checkpoint_path, ctx=ctx)
-    print("Loaded checkpoint:", checkpoint_path)
+        return 0
+    net.load_parameters(latest_path, ctx=ctx)
+    print("Loaded checkpoint:", latest_path)
+    return int(latest_iter)
 
 
-def _save_checkpoint_if_requested(net, args):
+def _save_checkpoint_if_requested(net, args, iteration):
     checkpoint_path = getattr(args, "checkpoint_path", None)
     if not checkpoint_path:
         return
-    checkpoint_dir = os.path.dirname(os.path.abspath(checkpoint_path))
+    if not _is_checkpoint_iteration(iteration, getattr(args, "niter", 1)):
+        return
+    iter_path = _checkpoint_path_for_iteration(checkpoint_path, iteration)
+    checkpoint_dir = os.path.dirname(os.path.abspath(iter_path))
     if checkpoint_dir:
         os.makedirs(checkpoint_dir, exist_ok=True)
-    net.save_parameters(checkpoint_path)
-    print("Saved checkpoint:", checkpoint_path)
+    net.save_parameters(iter_path)
+    print("Saved checkpoint:", iter_path)
 
 def get_device(device):
     # define the device to use
@@ -79,33 +137,29 @@ def get_device(device):
         ctx = mx.gpu(device)
     return ctx
     
-def get_cnn(num_outputs=10):
-    # define the architecture of the CNN
-    cnn = gluon.nn.Sequential()
-    with cnn.name_scope():
-        cnn.add(gluon.nn.Conv2D(channels=30, kernel_size=3, activation='relu'))
-        cnn.add(gluon.nn.MaxPool2D(pool_size=2, strides=2))
-        cnn.add(gluon.nn.Conv2D(channels=50, kernel_size=3, activation='relu'))
-        cnn.add(gluon.nn.MaxPool2D(pool_size=2, strides=2))
-        cnn.add(gluon.nn.Flatten())
-        cnn.add(gluon.nn.Dense(100, activation="relu"))
-        cnn.add(gluon.nn.Dense(num_outputs))
-    return cnn
+def _reshape_sample(x, ctx):
+    x_ctx = x.as_in_context(ctx)
+    if len(x_ctx.shape) == 2:
+        return x_ctx.reshape(1, 1, int(x_ctx.shape[0]), int(x_ctx.shape[1]))
+    if len(x_ctx.shape) == 3:
+        return x_ctx.reshape(1, int(x_ctx.shape[0]), int(x_ctx.shape[1]), int(x_ctx.shape[2]))
+    if len(x_ctx.shape) == 4:
+        return x_ctx
+    raise ValueError("Unsupported sample shape: %r" % (tuple(x_ctx.shape),))
 
-def get_net(net_type, num_outputs=10):
-    # define the model architecture
-    if net_type == 'cnn':
-        net = get_cnn(num_outputs)
-    else:
-        raise NotImplementedError
-    return net
-    
-def get_shapes(dataset):
+
+def get_shapes(dataset, snapshot_num_labels=None):
     # determine the input/output shapes 
     if dataset == 'FashionMNIST' or dataset == 'mnist':
         num_inputs = 28 * 28
         num_outputs = 10
         num_labels = 10
+    elif dataset == "SnapshotSafari":
+        if snapshot_num_labels is None:
+            raise ValueError("snapshot_num_labels is required for dataset SnapshotSafari")
+        num_inputs = None
+        num_outputs = int(snapshot_num_labels)
+        num_labels = int(snapshot_num_labels)
     else:
         raise NotImplementedError
     return num_inputs, num_outputs, num_labels
@@ -205,28 +259,43 @@ def get_byz(byz_type):
     else:
         raise NotImplementedError
         
-def load_data(dataset):
+def load_data(dataset, args=None):
     # load the dataset
     if dataset == 'FashionMNIST':
         def transform(data, label):
             return nd.transpose(data.astype(np.float32), (2, 0, 1)) / 255, label.astype(np.float32)
         train_data = mx.gluon.data.DataLoader(mx.gluon.data.vision.FashionMNIST(train=True, transform=transform), 60000,shuffle=True, last_batch='rollover')
         test_data = mx.gluon.data.DataLoader(mx.gluon.data.vision.FashionMNIST(train=False, transform=transform), 250, shuffle=False, last_batch='rollover')
+        meta = {"num_labels": 10}
     elif dataset == 'mnist':
         def transform(data, label):
             return nd.transpose(data.astype(np.float32), (2, 0, 1)) / 255, label.astype(np.float32)
         train_data = mx.gluon.data.DataLoader(mx.gluon.data.vision.MNIST(train=True, transform=transform), 60000, shuffle=True, last_batch='rollover')
         test_data = mx.gluon.data.DataLoader(mx.gluon.data.vision.MNIST(train=False, transform=transform), 256, shuffle=False, last_batch='rollover')
-
+        meta = {"num_labels": 10}
+    elif dataset == "SnapshotSafari":
+        if args is None:
+            raise ValueError("args are required when dataset is SnapshotSafari")
+        train_data, test_data, meta = safari_helper.load_snapshot_safari_data(
+            args, batch_size=256, last_batch="rollover"
+        )
 
     else:
         raise NotImplementedError
-    return train_data, test_data
+    return train_data, test_data, meta
     
 def assign_data(train_data, bias, ctx, num_labels=10, num_workers=100, server_pc=100, p=0.1, dataset="FashionMNIST", seed=1):
     # assign data to the clients
     other_group_size = (1 - bias) / (num_labels - 1)
-    worker_per_group = num_workers / num_labels
+    worker_counts = [
+        (num_workers // num_labels) + (1 if group_id < (num_workers % num_labels) else 0)
+        for group_id in range(num_labels)
+    ]
+    group_workers = []
+    worker_cursor = 0
+    for count in worker_counts:
+        group_workers.append(list(range(worker_cursor, worker_cursor + count)))
+        worker_cursor += count
 
     #assign training data to each worker
     each_worker_data = [[] for _ in range(num_workers)]
@@ -256,30 +325,32 @@ def assign_data(train_data, bias, ctx, num_labels=10, num_workers=100, server_pc
     server_counter = [0 for _ in range(num_labels)]
     for _, (data, label) in enumerate(train_data):
         for (x, y) in zip(data, label):
-            if dataset == "FashionMNIST" or dataset == "mnist":
-                x = x.as_in_context(ctx).reshape(1,1,28,28)
-            else:
-                raise NotImplementedError
+            x = _reshape_sample(x, ctx)
             y = y.as_in_context(ctx)
+            label_id = int(np.rint(y.asnumpy()).item())
             
-            upper_bound = (y.asnumpy()) * (1. - bias) / (num_labels - 1) + bias
-            lower_bound = (y.asnumpy()) * (1. - bias) / (num_labels - 1)
+            upper_bound = label_id * (1. - bias) / (num_labels - 1) + bias
+            lower_bound = label_id * (1. - bias) / (num_labels - 1)
             rd = np.random.random_sample()
             
             if rd > upper_bound:
-                worker_group = int(np.floor((rd - upper_bound) / other_group_size) + y.asnumpy() + 1)
+                worker_group = int(np.floor((rd - upper_bound) / other_group_size) + label_id + 1)
             elif rd < lower_bound:
                 worker_group = int(np.floor(rd / other_group_size))
             else:
-                worker_group = y.asnumpy()
+                worker_group = label_id
+            worker_group = int(worker_group) % num_labels
             
-            if server_counter[int(y.asnumpy())] < samp_dis[int(y.asnumpy())]:
+            if server_counter[label_id] < samp_dis[label_id]:
                 server_data.append(x)
                 server_label.append(y)
-                server_counter[int(y.asnumpy())] += 1
+                server_counter[label_id] += 1
             else:
                 rd = np.random.random_sample()
-                selected_worker = int(worker_group * worker_per_group + int(np.floor(rd * worker_per_group)))
+                workers = group_workers[worker_group]
+                if not workers:
+                    workers = list(range(num_workers))
+                selected_worker = workers[int(np.floor(rd * len(workers))) % len(workers)]
                 each_worker_data[selected_worker].append(x)
                 each_worker_label[selected_worker].append(y)
                 
@@ -303,7 +374,6 @@ def main(args):
     # device to use
     ctx = get_device(args.gpu)
     batch_size = args.batch_size
-    num_inputs, num_outputs, num_labels = get_shapes(args.dataset)
     byz = get_byz(args.byz_type)
     num_workers = args.nworkers
     if args.aggregation == "scaffold":
@@ -325,20 +395,6 @@ def main(args):
         args.nbyz) + "+" + "byz_type " + str(args.byz_type) + "+" + "aggregation " + str(args.aggregation) + ".txt"
  
     with ctx:
-    
-        # model architecture
-        net = get_net(args.net, num_outputs)
-        # initialization
-        net.collect_params().initialize(mx.init.Xavier(magnitude=2.24), force_reinit=True, ctx=ctx)
-        _load_checkpoint_if_present(net, args, ctx)
-        # loss
-        softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss()
-
-        grad_list = []
-        test_acc_list = []
-        attack_succ_list = []
-        eval_iteration = []
-
         # load the data
         # fix the seeds for loading data
         seed = args.nrepeats
@@ -346,7 +402,24 @@ def main(args):
             mx.random.seed(seed)
             random.seed(seed)
             np.random.seed(seed)
-        train_data, test_data = load_data(args.dataset)
+        train_data, test_data, dataset_meta = load_data(args.dataset, args=args)
+        _, num_outputs, num_labels = get_shapes(
+            args.dataset,
+            snapshot_num_labels=dataset_meta.get("num_labels"),
+        )
+
+        # model architecture
+        net = model_helper.build_model(args.dataset, args.net, num_outputs)
+        # initialization
+        net.collect_params().initialize(mx.init.Xavier(magnitude=2.24), force_reinit=True, ctx=ctx)
+        start_iter = _load_checkpoint_if_present(net, args, ctx)
+        # loss
+        softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss()
+
+        grad_list = []
+        test_acc_list = []
+        attack_succ_list = []
+        eval_iteration = []
         
         # assign data to the server and clients
         server_data, server_label, each_worker_data, each_worker_label = assign_data(
@@ -368,9 +441,14 @@ def main(args):
             )
 
         # begin training
-        for e in range(niter):
+        for e in range(start_iter, niter):
             for i in range(num_workers):
-                minibatch = np.random.choice(list(range(each_worker_data[i].shape[0])), size=batch_size, replace=False)
+                local_size = int(each_worker_data[i].shape[0])
+                minibatch = np.random.choice(
+                    list(range(local_size)),
+                    size=batch_size,
+                    replace=(local_size < batch_size),
+                )
                 with autograd.record():
                     output = net(each_worker_data[i][minibatch])
                     batch_label = each_worker_label[i][minibatch]
@@ -391,8 +469,11 @@ def main(args):
             # nd_aggregation.* expect len(grad_list) == n_workers + 1; the last slot is the
             # server reference update (used by fltrust; trailing row is ignored by fedavg / trimmed_mean).
             # Same RNG draw as the original fltrust path (indices not used for server forward).
+            server_size = int(server_data.shape[0])
             _ = np.random.choice(
-                list(range(server_data.shape[0])), size=args.server_pc, replace=False
+                list(range(server_size)),
+                size=args.server_pc,
+                replace=(server_size < args.server_pc),
             )
             with autograd.record():
                 output = net(server_data)
@@ -436,6 +517,7 @@ def main(args):
                     test_accuracy = evaluate_accuracy(test_data, net, ctx)
                     test_acc_list.append(test_accuracy)
                     print("[%s - %s] Iteration %02d. Test_acc %0.4f" % (args.aggregation, args.byz_type, e, test_accuracy))
+            _save_checkpoint_if_requested(net, args, e + 1)
 
         out = {
             "eval_iteration": np.asarray(eval_iteration, dtype=np.int64),
@@ -445,7 +527,6 @@ def main(args):
             out["attack_success_rate"] = np.asarray(attack_succ_list, dtype=np.float64)
         else:
             out["attack_success_rate"] = None
-        _save_checkpoint_if_requested(net, args)
         return out
 
 if __name__ == "__main__":
