@@ -1,0 +1,27 @@
+SnapshotSafari resize auto-detected: 96x128
+Checkpoint not found, starting fresh: checkpoints/flat__pair__every_10pct_of_200__label_flipping_attack__fedavg.params
+[fedavg - label_flipping_attack] Iteration 09. Test_acc 0.2358
+[fedavg - label_flipping_attack] Iteration 19. Test_acc 0.6413
+[fedavg - label_flipping_attack] Iteration 29. Test_acc 0.6413
+[fedavg - label_flipping_attack] Iteration 39. Test_acc 0.6381
+Saved checkpoint: checkpoints/flat__pair__every_10pct_of_200__label_flipping_attack__fedavg__iter_000040.params
+[fedavg - label_flipping_attack] Iteration 49. Test_acc 0.6413
+[fedavg - label_flipping_attack] Iteration 59. Test_acc 0.6393
+[fedavg - label_flipping_attack] Iteration 69. Test_acc 0.6432
+[fedavg - label_flipping_attack] Iteration 79. Test_acc 0.6374
+Saved checkpoint: checkpoints/flat__pair__every_10pct_of_200__label_flipping_attack__fedavg__iter_000080.params
+[fedavg - label_flipping_attack] Iteration 89. Test_acc 0.6390
+[fedavg - label_flipping_attack] Iteration 99. Test_acc 0.6406
+[fedavg - label_flipping_attack] Iteration 109. Test_acc 0.6392
+[fedavg - label_flipping_attack] Iteration 119. Test_acc 0.6377
+Saved checkpoint: checkpoints/flat__pair__every_10pct_of_200__label_flipping_attack__fedavg__iter_000120.params
+[fedavg - label_flipping_attack] Iteration 129. Test_acc 0.6400
+[fedavg - label_flipping_attack] Iteration 139. Test_acc 0.6465
+[fedavg - label_flipping_attack] Iteration 149. Test_acc 0.6399
+[fedavg - label_flipping_attack] Iteration 159. Test_acc 0.6432
+Saved checkpoint: checkpoints/flat__pair__every_10pct_of_200__label_flipping_attack__fedavg__iter_000160.params
+[fedavg - label_flipping_attack] Iteration 169. Test_acc 0.6458
+[fedavg - label_flipping_attack] Iteration 179. Test_acc 0.6470
+[fedavg - label_flipping_attack] Iteration 189. Test_acc 0.6468
+[fedavg - label_flipping_attack] Iteration 199. Test_acc 0.6465
+Saved checkpoint: checkpoints/flat__pair__every_10pct_of_200__label_flipping_attack__fedavg__iter_000200.params

@@ -28,9 +28,10 @@ def build_arg_parser():
             break
 
     if aggregation_action is not None:
-        current_choices = tuple(aggregation_action.choices or ())
-        if "foggytrust" not in current_choices:
-            aggregation_action.choices = current_choices + ("foggytrust",)
+        # For this runner, aggregation topology is fixed:
+        # - level 1 (workers -> fog) is always FLTrust
+        # - level 2 (fog -> cloud) is controlled by --foggy_aggregation
+        aggregation_action.choices = ("foggytrust",)
         aggregation_action.default = "foggytrust"
 
     parser.add_argument(
@@ -152,6 +153,12 @@ def _print_partition_summary(partition, fog_server_pc, fog_server_pc_mode):
 
 
 def main(args):
+    if str(getattr(args, "aggregation", "foggytrust")).strip().lower() != "foggytrust":
+        raise ValueError(
+            "test_foggytrust enforces --aggregation=foggytrust; "
+            "use --foggy_aggregation to choose the level-2 fog->cloud rule."
+        )
+
     ctx = tbp.get_device(args.gpu)
     batch_size = args.batch_size
     byz = tbp.get_byz(args.byz_type)
@@ -264,7 +271,7 @@ def main(args):
 
             fog_updates = []
             for group_id, worker_ids in enumerate(partition.group_workers):
-                # Stage 1 (clients -> fog): FLTrust-style aggregation.
+                # Stage 1 (clients -> fog): always FLTrust-style aggregation.
                 # The fog node's trusted mini-dataset produces a root update used as the
                 # FLTrust baseline; worker updates are trust-weighted/norm-clipped against it.
                 ordered_group_gradients, local_byz_count = _order_group_gradients(
@@ -287,7 +294,7 @@ def main(args):
                 )
                 fog_updates.append(fog_update)
 
-            # Stage 2 (fog -> cloud): choose fog-level aggregation independently.
+            # Stage 2 (fog -> cloud): this is the only place where --foggy_aggregation applies.
             global_update = fog_stage2_aggregator.aggregate(fog_updates)
             foggytrust_aggregation.apply_update_vector(net, global_update, lr)
 

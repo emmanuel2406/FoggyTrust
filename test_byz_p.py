@@ -77,6 +77,55 @@ def build_arg_parser():
 def parse_args(argv=None):
     return build_arg_parser().parse_args(argv)
 
+<<<<<<< Updated upstream
+=======
+
+_CHECKPOINT_ITER_RE = re.compile(r"__iter_(\d+)$")
+
+
+def _checkpoint_path_for_iteration(checkpoint_path, iteration):
+    base, ext = os.path.splitext(checkpoint_path)
+    return "%s__iter_%06d%s" % (base, int(iteration), ext)
+
+
+def _checkpoint_schedule(niter, fraction=0.2):
+    niter_i = max(1, int(niter))
+    frac = float(fraction)
+    if frac <= 0:
+        raise ValueError("fraction must be > 0")
+    steps = max(1, int(round(1.0 / frac)))
+    return {
+        max(1, min(niter_i, int(round(float(niter_i) * (k * frac)))))
+        for k in range(1, steps + 1)
+    }
+
+
+def _is_checkpoint_iteration(iteration, niter):
+    if iteration is None:
+        return False
+    return int(iteration) in _checkpoint_schedule(niter)
+
+
+def _find_latest_checkpoint(checkpoint_path, niter):
+    base, ext = os.path.splitext(checkpoint_path)
+    best_iter = -1
+    best_path = None
+    pattern = "%s__iter_*%s" % (base, ext)
+    for cand in glob.glob(pattern):
+        stem = os.path.splitext(cand)[0]
+        m = _CHECKPOINT_ITER_RE.search(stem)
+        if not m:
+            continue
+        it = int(m.group(1))
+        if niter is not None and it > int(niter):
+            continue
+        if it > best_iter:
+            best_iter = it
+            best_path = cand
+    return best_path, best_iter
+
+
+>>>>>>> Stashed changes
 def _load_checkpoint_if_present(net, args, ctx):
     return checkpoint_helper.load_model_checkpoint_if_present(net, args, ctx)
 

@@ -1,0 +1,27 @@
+SnapshotSafari resize auto-detected: 96x128
+Checkpoint not found, starting fresh: checkpoints/flat__pair__every_10pct_of_200__label_flipping_attack__fltrust.params
+[fltrust - label_flipping_attack] Iteration 09. Test_acc 0.0007
+[fltrust - label_flipping_attack] Iteration 19. Test_acc 0.0397
+[fltrust - label_flipping_attack] Iteration 29. Test_acc 0.5859
+[fltrust - label_flipping_attack] Iteration 39. Test_acc 0.5689
+Saved checkpoint: checkpoints/flat__pair__every_10pct_of_200__label_flipping_attack__fltrust__iter_000040.params
+[fltrust - label_flipping_attack] Iteration 49. Test_acc 0.6182
+[fltrust - label_flipping_attack] Iteration 59. Test_acc 0.6257
+[fltrust - label_flipping_attack] Iteration 69. Test_acc 0.6296
+[fltrust - label_flipping_attack] Iteration 79. Test_acc 0.6229
+Saved checkpoint: checkpoints/flat__pair__every_10pct_of_200__label_flipping_attack__fltrust__iter_000080.params
+[fltrust - label_flipping_attack] Iteration 89. Test_acc 0.6250
+[fltrust - label_flipping_attack] Iteration 99. Test_acc 0.6276
+[fltrust - label_flipping_attack] Iteration 109. Test_acc 0.6264
+[fltrust - label_flipping_attack] Iteration 119. Test_acc 0.6299
+Saved checkpoint: checkpoints/flat__pair__every_10pct_of_200__label_flipping_attack__fltrust__iter_000120.params
+[fltrust - label_flipping_attack] Iteration 129. Test_acc 0.6276
+[fltrust - label_flipping_attack] Iteration 139. Test_acc 0.6309
+[fltrust - label_flipping_attack] Iteration 149. Test_acc 0.6314
+[fltrust - label_flipping_attack] Iteration 159. Test_acc 0.6208
+Saved checkpoint: checkpoints/flat__pair__every_10pct_of_200__label_flipping_attack__fltrust__iter_000160.params
+[fltrust - label_flipping_attack] Iteration 169. Test_acc 0.6240
+[fltrust - label_flipping_attack] Iteration 179. Test_acc 0.6218
+[fltrust - label_flipping_attack] Iteration 189. Test_acc 0.6230
+[fltrust - label_flipping_attack] Iteration 199. Test_acc 0.6230
+Saved checkpoint: checkpoints/flat__pair__every_10pct_of_200__label_flipping_attack__fltrust__iter_000200.params

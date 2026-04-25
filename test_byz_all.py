@@ -8,6 +8,7 @@ import os
 import re
 import sys
 import threading
+import warnings
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import numpy as np
@@ -17,7 +18,7 @@ import model_helper
 # Must match test_byz_p.get_byz / byzantine handlers
 # ALL_BYZ_TYPES = ("scaling_attack", "adaptive_attack", "krum_attack", "no", "label_flipping_attack", "trim_attack")
 # ALL_BYZ_TYPES = ("no", "krum_attack", "scaling_attack", "label_flipping_attack", "trim_attack")
-ALL_BYZ_TYPES = ("no",)
+ALL_BYZ_TYPES = ("label_flipping_attack",)
 
 # ALL_BYZ_TYPES = ("label_flipping_attack", "krum_attack", "trim_attack")
 # Must match test_byz_p.build_arg_parser --aggregation choices
@@ -672,27 +673,29 @@ def build_pairwise_timeseries_table(
     return _finalize_pairwise_table(byz_types, aggregations, outs)
 
 
-def build_scaffold_pairwise_timeseries_table(
+def build_level2_pairwise_timeseries_table(
     base_args=None,
     byz_types=None,
-    aggregations=None,
+    level2_methods=None,
     log_dir=None,
     checkpoint_dir="checkpoints",
     max_workers=None,
-    runner="flat",
+    runner="foggytrust",
 ):
     """
-    Encapsulated pairwise sweep for stateful SCAFFOLD aggregation.
+    Encapsulated pairwise sweep for runner-specific level-2 aggregation methods.
 
-    Defaults to the flat runner and ``("scaffold",)`` aggregation while reusing the
-    existing pairwise output contract.
+    For the FoggyTrust runner, this maps directly to stage-2 fog->cloud
+    ``foggy_aggregation`` choices (for example: ``fedavg``, ``scaffold``,
+    ``fedadam``). Other runners simply use these as ``aggregation`` values.
     """
-    if aggregations is None:
-        aggregations = ("scaffold",)
+    runner_name, _ = _resolve_runner_module(runner)
+    if level2_methods is None:
+        level2_methods = _default_aggregations_for_runner(runner_name)
     return build_pairwise_timeseries_table(
         base_args=base_args,
         byz_types=byz_types,
-        aggregations=aggregations,
+        aggregations=level2_methods,
         log_dir=log_dir,
         checkpoint_dir=checkpoint_dir,
         max_workers=max_workers,
