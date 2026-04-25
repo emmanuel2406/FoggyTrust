@@ -1,0 +1,234 @@
+Checkpoint not found, starting fresh: checkpoints/foggytrust__pair__every_10pct_of_2000__no__foggytrust_fedadam.params
+FoggyTrust trusted-data mode: replicated per_group=100 (1000 total across groups)
+FoggyTrust groups fixed at startup: 10 groups
+  fog_group=0 workers=10 byzantine=2 trusted_points=100
+  fog_group=1 workers=10 byzantine=2 trusted_points=100
+  fog_group=2 workers=10 byzantine=2 trusted_points=100
+  fog_group=3 workers=10 byzantine=2 trusted_points=100
+  fog_group=4 workers=10 byzantine=2 trusted_points=100
+  fog_group=5 workers=10 byzantine=2 trusted_points=100
+  fog_group=6 workers=10 byzantine=2 trusted_points=100
+  fog_group=7 workers=10 byzantine=2 trusted_points=100
+  fog_group=8 workers=10 byzantine=2 trusted_points=100
+  fog_group=9 workers=10 byzantine=2 trusted_points=100
+Aggregator state not found, starting fresh: checkpoints/foggytrust__pair__every_10pct_of_2000__no__foggytrust_fedadam.state.npz
+[foggytrust - no] Iteration 09. Test_acc 0.1042
+[foggytrust - no] Iteration 19. Test_acc 0.1206
+[foggytrust - no] Iteration 29. Test_acc 0.1403
+[foggytrust - no] Iteration 39. Test_acc 0.1749
+[foggytrust - no] Iteration 49. Test_acc 0.2427
+[foggytrust - no] Iteration 59. Test_acc 0.3115
+[foggytrust - no] Iteration 69. Test_acc 0.3770
+[foggytrust - no] Iteration 79. Test_acc 0.4327
+[foggytrust - no] Iteration 89. Test_acc 0.4700
+[foggytrust - no] Iteration 99. Test_acc 0.5100
+[foggytrust - no] Iteration 109. Test_acc 0.5416
+[foggytrust - no] Iteration 119. Test_acc 0.5618
+[foggytrust - no] Iteration 129. Test_acc 0.5881
+[foggytrust - no] Iteration 139. Test_acc 0.6079
+[foggytrust - no] Iteration 149. Test_acc 0.6311
+[foggytrust - no] Iteration 159. Test_acc 0.6499
+[foggytrust - no] Iteration 169. Test_acc 0.6607
+[foggytrust - no] Iteration 179. Test_acc 0.6708
+[foggytrust - no] Iteration 189. Test_acc 0.6844
+[foggytrust - no] Iteration 199. Test_acc 0.7006
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_2000__no__foggytrust_fedadam__iter_000200.params
+Saved aggregator state: checkpoints/foggytrust__pair__every_10pct_of_2000__no__foggytrust_fedadam__iter_000200.state.npz
+[foggytrust - no] Iteration 209. Test_acc 0.7119
+[foggytrust - no] Iteration 219. Test_acc 0.7220
+[foggytrust - no] Iteration 229. Test_acc 0.7361
+[foggytrust - no] Iteration 239. Test_acc 0.7506
+[foggytrust - no] Iteration 249. Test_acc 0.7635
+[foggytrust - no] Iteration 259. Test_acc 0.7737
+[foggytrust - no] Iteration 269. Test_acc 0.7850
+[foggytrust - no] Iteration 279. Test_acc 0.7921
+[foggytrust - no] Iteration 289. Test_acc 0.7978
+[foggytrust - no] Iteration 299. Test_acc 0.8043
+[foggytrust - no] Iteration 309. Test_acc 0.8085
+[foggytrust - no] Iteration 319. Test_acc 0.8130
+[foggytrust - no] Iteration 329. Test_acc 0.8196
+[foggytrust - no] Iteration 339. Test_acc 0.8244
+[foggytrust - no] Iteration 349. Test_acc 0.8263
+[foggytrust - no] Iteration 359. Test_acc 0.8306
+[foggytrust - no] Iteration 369. Test_acc 0.8365
+[foggytrust - no] Iteration 379. Test_acc 0.8399
+[foggytrust - no] Iteration 389. Test_acc 0.8408
+[foggytrust - no] Iteration 399. Test_acc 0.8456
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_2000__no__foggytrust_fedadam__iter_000400.params
+Saved aggregator state: checkpoints/foggytrust__pair__every_10pct_of_2000__no__foggytrust_fedadam__iter_000400.state.npz
+[foggytrust - no] Iteration 409. Test_acc 0.8485
+[foggytrust - no] Iteration 419. Test_acc 0.8509
+[foggytrust - no] Iteration 429. Test_acc 0.8541
+[foggytrust - no] Iteration 439. Test_acc 0.8558
+[foggytrust - no] Iteration 449. Test_acc 0.8578
+[foggytrust - no] Iteration 459. Test_acc 0.8605
+[foggytrust - no] Iteration 469. Test_acc 0.8623
+[foggytrust - no] Iteration 479. Test_acc 0.8622
+[foggytrust - no] Iteration 489. Test_acc 0.8664
+[foggytrust - no] Iteration 499. Test_acc 0.8673
+[foggytrust - no] Iteration 509. Test_acc 0.8701
+[foggytrust - no] Iteration 519. Test_acc 0.8719
+[foggytrust - no] Iteration 529. Test_acc 0.8726
+[foggytrust - no] Iteration 539. Test_acc 0.8744
+[foggytrust - no] Iteration 549. Test_acc 0.8753
+[foggytrust - no] Iteration 559. Test_acc 0.8781
+[foggytrust - no] Iteration 569. Test_acc 0.8790
+[foggytrust - no] Iteration 579. Test_acc 0.8821
+[foggytrust - no] Iteration 589. Test_acc 0.8814
+[foggytrust - no] Iteration 599. Test_acc 0.8832
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_2000__no__foggytrust_fedadam__iter_000600.params
+Saved aggregator state: checkpoints/foggytrust__pair__every_10pct_of_2000__no__foggytrust_fedadam__iter_000600.state.npz
+[foggytrust - no] Iteration 609. Test_acc 0.8847
+[foggytrust - no] Iteration 619. Test_acc 0.8861
+[foggytrust - no] Iteration 629. Test_acc 0.8875
+[foggytrust - no] Iteration 639. Test_acc 0.8869
+[foggytrust - no] Iteration 649. Test_acc 0.8890
+[foggytrust - no] Iteration 659. Test_acc 0.8900
+[foggytrust - no] Iteration 669. Test_acc 0.8904
+[foggytrust - no] Iteration 679. Test_acc 0.8930
+[foggytrust - no] Iteration 689. Test_acc 0.8926
+[foggytrust - no] Iteration 699. Test_acc 0.8938
+[foggytrust - no] Iteration 709. Test_acc 0.8957
+[foggytrust - no] Iteration 719. Test_acc 0.8971
+[foggytrust - no] Iteration 729. Test_acc 0.8978
+[foggytrust - no] Iteration 739. Test_acc 0.8990
+[foggytrust - no] Iteration 749. Test_acc 0.8998
+[foggytrust - no] Iteration 759. Test_acc 0.9004
+[foggytrust - no] Iteration 769. Test_acc 0.9006
+[foggytrust - no] Iteration 779. Test_acc 0.9018
+[foggytrust - no] Iteration 789. Test_acc 0.9028
+[foggytrust - no] Iteration 799. Test_acc 0.9023
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_2000__no__foggytrust_fedadam__iter_000800.params
+Saved aggregator state: checkpoints/foggytrust__pair__every_10pct_of_2000__no__foggytrust_fedadam__iter_000800.state.npz
+[foggytrust - no] Iteration 809. Test_acc 0.9051
+[foggytrust - no] Iteration 819. Test_acc 0.9053
+[foggytrust - no] Iteration 829. Test_acc 0.9064
+[foggytrust - no] Iteration 839. Test_acc 0.9079
+[foggytrust - no] Iteration 849. Test_acc 0.9076
+[foggytrust - no] Iteration 859. Test_acc 0.9087
+[foggytrust - no] Iteration 869. Test_acc 0.9107
+[foggytrust - no] Iteration 879. Test_acc 0.9093
+[foggytrust - no] Iteration 889. Test_acc 0.9109
+[foggytrust - no] Iteration 899. Test_acc 0.9116
+[foggytrust - no] Iteration 909. Test_acc 0.9128
+[foggytrust - no] Iteration 919. Test_acc 0.9130
+[foggytrust - no] Iteration 929. Test_acc 0.9134
+[foggytrust - no] Iteration 939. Test_acc 0.9156
+[foggytrust - no] Iteration 949. Test_acc 0.9158
+[foggytrust - no] Iteration 959. Test_acc 0.9146
+[foggytrust - no] Iteration 969. Test_acc 0.9169
+[foggytrust - no] Iteration 979. Test_acc 0.9178
+[foggytrust - no] Iteration 989. Test_acc 0.9167
+[foggytrust - no] Iteration 999. Test_acc 0.9195
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_2000__no__foggytrust_fedadam__iter_001000.params
+Saved aggregator state: checkpoints/foggytrust__pair__every_10pct_of_2000__no__foggytrust_fedadam__iter_001000.state.npz
+[foggytrust - no] Iteration 1009. Test_acc 0.9182
+[foggytrust - no] Iteration 1019. Test_acc 0.9196
+[foggytrust - no] Iteration 1029. Test_acc 0.9205
+[foggytrust - no] Iteration 1039. Test_acc 0.9215
+[foggytrust - no] Iteration 1049. Test_acc 0.9217
+[foggytrust - no] Iteration 1059. Test_acc 0.9221
+[foggytrust - no] Iteration 1069. Test_acc 0.9226
+[foggytrust - no] Iteration 1079. Test_acc 0.9227
+[foggytrust - no] Iteration 1089. Test_acc 0.9235
+[foggytrust - no] Iteration 1099. Test_acc 0.9245
+[foggytrust - no] Iteration 1109. Test_acc 0.9244
+[foggytrust - no] Iteration 1119. Test_acc 0.9235
+[foggytrust - no] Iteration 1129. Test_acc 0.9255
+[foggytrust - no] Iteration 1139. Test_acc 0.9260
+[foggytrust - no] Iteration 1149. Test_acc 0.9261
+[foggytrust - no] Iteration 1159. Test_acc 0.9273
+[foggytrust - no] Iteration 1169. Test_acc 0.9269
+[foggytrust - no] Iteration 1179. Test_acc 0.9287
+[foggytrust - no] Iteration 1189. Test_acc 0.9284
+[foggytrust - no] Iteration 1199. Test_acc 0.9284
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_2000__no__foggytrust_fedadam__iter_001200.params
+Saved aggregator state: checkpoints/foggytrust__pair__every_10pct_of_2000__no__foggytrust_fedadam__iter_001200.state.npz
+[foggytrust - no] Iteration 1209. Test_acc 0.9306
+[foggytrust - no] Iteration 1219. Test_acc 0.9300
+[foggytrust - no] Iteration 1229. Test_acc 0.9301
+[foggytrust - no] Iteration 1239. Test_acc 0.9317
+[foggytrust - no] Iteration 1249. Test_acc 0.9319
+[foggytrust - no] Iteration 1259. Test_acc 0.9328
+[foggytrust - no] Iteration 1269. Test_acc 0.9330
+[foggytrust - no] Iteration 1279. Test_acc 0.9318
+[foggytrust - no] Iteration 1289. Test_acc 0.9343
+[foggytrust - no] Iteration 1299. Test_acc 0.9340
+[foggytrust - no] Iteration 1309. Test_acc 0.9347
+[foggytrust - no] Iteration 1319. Test_acc 0.9354
+[foggytrust - no] Iteration 1329. Test_acc 0.9346
+[foggytrust - no] Iteration 1339. Test_acc 0.9351
+[foggytrust - no] Iteration 1349. Test_acc 0.9354
+[foggytrust - no] Iteration 1359. Test_acc 0.9367
+[foggytrust - no] Iteration 1369. Test_acc 0.9367
+[foggytrust - no] Iteration 1379. Test_acc 0.9370
+[foggytrust - no] Iteration 1389. Test_acc 0.9381
+[foggytrust - no] Iteration 1399. Test_acc 0.9373
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_2000__no__foggytrust_fedadam__iter_001400.params
+Saved aggregator state: checkpoints/foggytrust__pair__every_10pct_of_2000__no__foggytrust_fedadam__iter_001400.state.npz
+[foggytrust - no] Iteration 1409. Test_acc 0.9374
+[foggytrust - no] Iteration 1419. Test_acc 0.9383
+[foggytrust - no] Iteration 1429. Test_acc 0.9391
+[foggytrust - no] Iteration 1439. Test_acc 0.9388
+[foggytrust - no] Iteration 1449. Test_acc 0.9387
+[foggytrust - no] Iteration 1459. Test_acc 0.9407
+[foggytrust - no] Iteration 1469. Test_acc 0.9396
+[foggytrust - no] Iteration 1479. Test_acc 0.9411
+[foggytrust - no] Iteration 1489. Test_acc 0.9407
+[foggytrust - no] Iteration 1499. Test_acc 0.9415
+[foggytrust - no] Iteration 1509. Test_acc 0.9412
+[foggytrust - no] Iteration 1519. Test_acc 0.9420
+[foggytrust - no] Iteration 1529. Test_acc 0.9436
+[foggytrust - no] Iteration 1539. Test_acc 0.9433
+[foggytrust - no] Iteration 1549. Test_acc 0.9419
+[foggytrust - no] Iteration 1559. Test_acc 0.9444
+[foggytrust - no] Iteration 1569. Test_acc 0.9432
+[foggytrust - no] Iteration 1579. Test_acc 0.9438
+[foggytrust - no] Iteration 1589. Test_acc 0.9444
+[foggytrust - no] Iteration 1599. Test_acc 0.9432
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_2000__no__foggytrust_fedadam__iter_001600.params
+Saved aggregator state: checkpoints/foggytrust__pair__every_10pct_of_2000__no__foggytrust_fedadam__iter_001600.state.npz
+[foggytrust - no] Iteration 1609. Test_acc 0.9454
+[foggytrust - no] Iteration 1619. Test_acc 0.9463
+[foggytrust - no] Iteration 1629. Test_acc 0.9465
+[foggytrust - no] Iteration 1639. Test_acc 0.9465
+[foggytrust - no] Iteration 1649. Test_acc 0.9460
+[foggytrust - no] Iteration 1659. Test_acc 0.9459
+[foggytrust - no] Iteration 1669. Test_acc 0.9477
+[foggytrust - no] Iteration 1679. Test_acc 0.9482
+[foggytrust - no] Iteration 1689. Test_acc 0.9471
+[foggytrust - no] Iteration 1699. Test_acc 0.9466
+[foggytrust - no] Iteration 1709. Test_acc 0.9470
+[foggytrust - no] Iteration 1719. Test_acc 0.9476
+[foggytrust - no] Iteration 1729. Test_acc 0.9478
+[foggytrust - no] Iteration 1739. Test_acc 0.9486
+[foggytrust - no] Iteration 1749. Test_acc 0.9486
+[foggytrust - no] Iteration 1759. Test_acc 0.9474
+[foggytrust - no] Iteration 1769. Test_acc 0.9484
+[foggytrust - no] Iteration 1779. Test_acc 0.9491
+[foggytrust - no] Iteration 1789. Test_acc 0.9488
+[foggytrust - no] Iteration 1799. Test_acc 0.9496
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_2000__no__foggytrust_fedadam__iter_001800.params
+Saved aggregator state: checkpoints/foggytrust__pair__every_10pct_of_2000__no__foggytrust_fedadam__iter_001800.state.npz
+[foggytrust - no] Iteration 1809. Test_acc 0.9497
+[foggytrust - no] Iteration 1819. Test_acc 0.9498
+[foggytrust - no] Iteration 1829. Test_acc 0.9510
+[foggytrust - no] Iteration 1839. Test_acc 0.9510
+[foggytrust - no] Iteration 1849. Test_acc 0.9515
+[foggytrust - no] Iteration 1859. Test_acc 0.9518
+[foggytrust - no] Iteration 1869. Test_acc 0.9508
+[foggytrust - no] Iteration 1879. Test_acc 0.9520
+[foggytrust - no] Iteration 1889. Test_acc 0.9507
+[foggytrust - no] Iteration 1899. Test_acc 0.9512
+[foggytrust - no] Iteration 1909. Test_acc 0.9516
+[foggytrust - no] Iteration 1919. Test_acc 0.9517
+[foggytrust - no] Iteration 1929. Test_acc 0.9513
+[foggytrust - no] Iteration 1939. Test_acc 0.9534
+[foggytrust - no] Iteration 1949. Test_acc 0.9525
+[foggytrust - no] Iteration 1959. Test_acc 0.9535
+[foggytrust - no] Iteration 1969. Test_acc 0.9524
+[foggytrust - no] Iteration 1979. Test_acc 0.9533
+[foggytrust - no] Iteration 1989. Test_acc 0.9534
+[foggytrust - no] Iteration 1999. Test_acc 0.9549
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_2000__no__foggytrust_fedadam__iter_002000.params
+Saved aggregator state: checkpoints/foggytrust__pair__every_10pct_of_2000__no__foggytrust_fedadam__iter_002000.state.npz

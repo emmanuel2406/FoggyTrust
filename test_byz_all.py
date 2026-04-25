@@ -18,18 +18,17 @@ import checkpoint_helper
 
 # Must match test_byz_p.get_byz / byzantine handlers
 # ALL_BYZ_TYPES = ("scaling_attack", "adaptive_attack", "krum_attack", "no", "label_flipping_attack", "trim_attack")
-# ALL_BYZ_TYPES = ("no", "krum_attack", "scaling_attack", "label_flipping_attack", "trim_attack")
-ALL_BYZ_TYPES = ("label_flipping_attack",)
+ALL_BYZ_TYPES = ("no", "scaling_attack", "label_flipping_attack", "trim_attack", "krum_attack")
 
 # ALL_BYZ_TYPES = ("label_flipping_attack", "krum_attack", "trim_attack")
 # Must match test_byz_p.build_arg_parser --aggregation choices
 # Set to () to skip flat aggregation sweeps.
-# ALL_AGGREGATIONS = ("fltrust", "fedavg", "trimmed_mean", "median", "krum", "scaffold")
-ALL_AGGREGATIONS = ("fltrust","fedavg",)
+ALL_AGGREGATIONS = ("fltrust", "fedavg", "trimmed_mean", "median", "krum", "scaffold")
+# ALL_AGGREGATIONS = ("fltrust","fedavg",)
 
 # Must match test_foggytrust.build_arg_parser --foggy_aggregation choices.
 # Keep a single default to preserve prior one-run foggytrust sweep behavior.
-FOGGYTRUST_AGGREGATIONS = ("fedavg",)
+FOGGYTRUST_AGGREGATIONS = ("fedadam",)
 
 # Thread-local sinks: ``contextlib.redirect_stdout`` swaps *global* sys.stdout, which breaks
 # when ``ThreadPoolExecutor`` runs several experiments at once (all prints share one stream).

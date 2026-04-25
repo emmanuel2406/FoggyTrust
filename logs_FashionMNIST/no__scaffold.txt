@@ -1,0 +1,2 @@
+Checkpoint not found, starting fresh: checkpoints/flat__pair__every_10pct_of_2500__no__scaffold.params
+Aggregator state not found, starting fresh: checkpoints/flat__pair__every_10pct_of_2500__no__scaffold.state.npz

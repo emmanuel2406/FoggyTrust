@@ -46,7 +46,7 @@ def resolve_model_type(dataset, requested_net):
     - MNIST/FashionMNIST: CNN
     - Everything else (including SnapshotSafari): ResNet-20
     """
-    dataset_key = str(dataset).strip().lower()
+    dataset_key = str(dataset).strip().lower().replace("-", "").replace("_", "")
     if dataset_key in ("fashionmnist", "mnist"):
         return "cnn"
     return "resnet20"

@@ -138,13 +138,25 @@ def _reshape_sample(x, ctx):
     raise ValueError("Unsupported sample shape: %r" % (tuple(x_ctx.shape),))
 
 
+def _normalize_dataset_name(dataset):
+    key = str(dataset).strip().lower().replace("-", "").replace("_", "")
+    if key == "fashionmnist":
+        return "fashionmnist"
+    if key == "mnist":
+        return "mnist"
+    if key == "snapshotsafari":
+        return "snapshotsafari"
+    raise NotImplementedError("Unknown dataset: %r" % (dataset,))
+
+
 def get_shapes(dataset, snapshot_num_labels=None):
     # determine the input/output shapes 
-    if dataset == 'FashionMNIST' or dataset == 'mnist':
+    dataset_key = _normalize_dataset_name(dataset)
+    if dataset_key in ("fashionmnist", "mnist"):
         num_inputs = 28 * 28
         num_outputs = 10
         num_labels = 10
-    elif dataset == "SnapshotSafari":
+    elif dataset_key == "snapshotsafari":
         if snapshot_num_labels is None:
             raise ValueError("snapshot_num_labels is required for dataset SnapshotSafari")
         num_inputs = None
@@ -276,19 +288,20 @@ def get_byz(byz_type):
         
 def load_data(dataset, args=None):
     # load the dataset
-    if dataset == 'FashionMNIST':
+    dataset_key = _normalize_dataset_name(dataset)
+    if dataset_key == "fashionmnist":
         def transform(data, label):
             return nd.transpose(data.astype(np.float32), (2, 0, 1)) / 255, label.astype(np.float32)
         train_data = mx.gluon.data.DataLoader(mx.gluon.data.vision.FashionMNIST(train=True, transform=transform), 60000,shuffle=True, last_batch='rollover')
         test_data = mx.gluon.data.DataLoader(mx.gluon.data.vision.FashionMNIST(train=False, transform=transform), 250, shuffle=False, last_batch='rollover')
         meta = {"num_labels": 10}
-    elif dataset == 'mnist':
+    elif dataset_key == "mnist":
         def transform(data, label):
             return nd.transpose(data.astype(np.float32), (2, 0, 1)) / 255, label.astype(np.float32)
         train_data = mx.gluon.data.DataLoader(mx.gluon.data.vision.MNIST(train=True, transform=transform), 60000, shuffle=True, last_batch='rollover')
         test_data = mx.gluon.data.DataLoader(mx.gluon.data.vision.MNIST(train=False, transform=transform), 256, shuffle=False, last_batch='rollover')
         meta = {"num_labels": 10}
-    elif dataset == "SnapshotSafari":
+    elif dataset_key == "snapshotsafari":
         if args is None:
             raise ValueError("args are required when dataset is SnapshotSafari")
         train_data, test_data, meta = safari_helper.load_snapshot_safari_data(

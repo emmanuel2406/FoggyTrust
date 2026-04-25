@@ -1,0 +1,234 @@
+Checkpoint not found, starting fresh: checkpoints/foggytrust__pair__every_10pct_of_2000__label_flipping_attack__foggytrust_fedadam.params
+FoggyTrust trusted-data mode: replicated per_group=100 (1000 total across groups)
+FoggyTrust groups fixed at startup: 10 groups
+  fog_group=0 workers=10 byzantine=2 trusted_points=100
+  fog_group=1 workers=10 byzantine=2 trusted_points=100
+  fog_group=2 workers=10 byzantine=2 trusted_points=100
+  fog_group=3 workers=10 byzantine=2 trusted_points=100
+  fog_group=4 workers=10 byzantine=2 trusted_points=100
+  fog_group=5 workers=10 byzantine=2 trusted_points=100
+  fog_group=6 workers=10 byzantine=2 trusted_points=100
+  fog_group=7 workers=10 byzantine=2 trusted_points=100
+  fog_group=8 workers=10 byzantine=2 trusted_points=100
+  fog_group=9 workers=10 byzantine=2 trusted_points=100
+Aggregator state not found, starting fresh: checkpoints/foggytrust__pair__every_10pct_of_2000__label_flipping_attack__foggytrust_fedadam.state.npz
+[foggytrust - label_flipping_attack] Iteration 09. Test_acc 0.1070
+[foggytrust - label_flipping_attack] Iteration 19. Test_acc 0.1454
+[foggytrust - label_flipping_attack] Iteration 29. Test_acc 0.2325
+[foggytrust - label_flipping_attack] Iteration 39. Test_acc 0.3070
+[foggytrust - label_flipping_attack] Iteration 49. Test_acc 0.3577
+[foggytrust - label_flipping_attack] Iteration 59. Test_acc 0.3993
+[foggytrust - label_flipping_attack] Iteration 69. Test_acc 0.4367
+[foggytrust - label_flipping_attack] Iteration 79. Test_acc 0.4675
+[foggytrust - label_flipping_attack] Iteration 89. Test_acc 0.5062
+[foggytrust - label_flipping_attack] Iteration 99. Test_acc 0.5433
+[foggytrust - label_flipping_attack] Iteration 109. Test_acc 0.5744
+[foggytrust - label_flipping_attack] Iteration 119. Test_acc 0.5972
+[foggytrust - label_flipping_attack] Iteration 129. Test_acc 0.6183
+[foggytrust - label_flipping_attack] Iteration 139. Test_acc 0.6351
+[foggytrust - label_flipping_attack] Iteration 149. Test_acc 0.6488
+[foggytrust - label_flipping_attack] Iteration 159. Test_acc 0.6599
+[foggytrust - label_flipping_attack] Iteration 169. Test_acc 0.6768
+[foggytrust - label_flipping_attack] Iteration 179. Test_acc 0.6905
+[foggytrust - label_flipping_attack] Iteration 189. Test_acc 0.7010
+[foggytrust - label_flipping_attack] Iteration 199. Test_acc 0.7132
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_2000__label_flipping_attack__foggytrust_fedadam__iter_000200.params
+Saved aggregator state: checkpoints/foggytrust__pair__every_10pct_of_2000__label_flipping_attack__foggytrust_fedadam__iter_000200.state.npz
+[foggytrust - label_flipping_attack] Iteration 209. Test_acc 0.7256
+[foggytrust - label_flipping_attack] Iteration 219. Test_acc 0.7271
+[foggytrust - label_flipping_attack] Iteration 229. Test_acc 0.7336
+[foggytrust - label_flipping_attack] Iteration 239. Test_acc 0.7401
+[foggytrust - label_flipping_attack] Iteration 249. Test_acc 0.7588
+[foggytrust - label_flipping_attack] Iteration 259. Test_acc 0.7653
+[foggytrust - label_flipping_attack] Iteration 269. Test_acc 0.7682
+[foggytrust - label_flipping_attack] Iteration 279. Test_acc 0.7718
+[foggytrust - label_flipping_attack] Iteration 289. Test_acc 0.7794
+[foggytrust - label_flipping_attack] Iteration 299. Test_acc 0.7888
+[foggytrust - label_flipping_attack] Iteration 309. Test_acc 0.7921
+[foggytrust - label_flipping_attack] Iteration 319. Test_acc 0.7933
+[foggytrust - label_flipping_attack] Iteration 329. Test_acc 0.7999
+[foggytrust - label_flipping_attack] Iteration 339. Test_acc 0.8072
+[foggytrust - label_flipping_attack] Iteration 349. Test_acc 0.8108
+[foggytrust - label_flipping_attack] Iteration 359. Test_acc 0.8120
+[foggytrust - label_flipping_attack] Iteration 369. Test_acc 0.8191
+[foggytrust - label_flipping_attack] Iteration 379. Test_acc 0.8229
+[foggytrust - label_flipping_attack] Iteration 389. Test_acc 0.8280
+[foggytrust - label_flipping_attack] Iteration 399. Test_acc 0.8330
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_2000__label_flipping_attack__foggytrust_fedadam__iter_000400.params
+Saved aggregator state: checkpoints/foggytrust__pair__every_10pct_of_2000__label_flipping_attack__foggytrust_fedadam__iter_000400.state.npz
+[foggytrust - label_flipping_attack] Iteration 409. Test_acc 0.8331
+[foggytrust - label_flipping_attack] Iteration 419. Test_acc 0.8392
+[foggytrust - label_flipping_attack] Iteration 429. Test_acc 0.8420
+[foggytrust - label_flipping_attack] Iteration 439. Test_acc 0.8421
+[foggytrust - label_flipping_attack] Iteration 449. Test_acc 0.8459
+[foggytrust - label_flipping_attack] Iteration 459. Test_acc 0.8461
+[foggytrust - label_flipping_attack] Iteration 469. Test_acc 0.8483
+[foggytrust - label_flipping_attack] Iteration 479. Test_acc 0.8509
+[foggytrust - label_flipping_attack] Iteration 489. Test_acc 0.8540
+[foggytrust - label_flipping_attack] Iteration 499. Test_acc 0.8566
+[foggytrust - label_flipping_attack] Iteration 509. Test_acc 0.8596
+[foggytrust - label_flipping_attack] Iteration 519. Test_acc 0.8622
+[foggytrust - label_flipping_attack] Iteration 529. Test_acc 0.8642
+[foggytrust - label_flipping_attack] Iteration 539. Test_acc 0.8662
+[foggytrust - label_flipping_attack] Iteration 549. Test_acc 0.8686
+[foggytrust - label_flipping_attack] Iteration 559. Test_acc 0.8700
+[foggytrust - label_flipping_attack] Iteration 569. Test_acc 0.8705
+[foggytrust - label_flipping_attack] Iteration 579. Test_acc 0.8752
+[foggytrust - label_flipping_attack] Iteration 589. Test_acc 0.8762
+[foggytrust - label_flipping_attack] Iteration 599. Test_acc 0.8765
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_2000__label_flipping_attack__foggytrust_fedadam__iter_000600.params
+Saved aggregator state: checkpoints/foggytrust__pair__every_10pct_of_2000__label_flipping_attack__foggytrust_fedadam__iter_000600.state.npz
+[foggytrust - label_flipping_attack] Iteration 609. Test_acc 0.8793
+[foggytrust - label_flipping_attack] Iteration 619. Test_acc 0.8809
+[foggytrust - label_flipping_attack] Iteration 629. Test_acc 0.8824
+[foggytrust - label_flipping_attack] Iteration 639. Test_acc 0.8822
+[foggytrust - label_flipping_attack] Iteration 649. Test_acc 0.8855
+[foggytrust - label_flipping_attack] Iteration 659. Test_acc 0.8869
+[foggytrust - label_flipping_attack] Iteration 669. Test_acc 0.8870
+[foggytrust - label_flipping_attack] Iteration 679. Test_acc 0.8892
+[foggytrust - label_flipping_attack] Iteration 689. Test_acc 0.8901
+[foggytrust - label_flipping_attack] Iteration 699. Test_acc 0.8914
+[foggytrust - label_flipping_attack] Iteration 709. Test_acc 0.8924
+[foggytrust - label_flipping_attack] Iteration 719. Test_acc 0.8942
+[foggytrust - label_flipping_attack] Iteration 729. Test_acc 0.8945
+[foggytrust - label_flipping_attack] Iteration 739. Test_acc 0.8960
+[foggytrust - label_flipping_attack] Iteration 749. Test_acc 0.8960
+[foggytrust - label_flipping_attack] Iteration 759. Test_acc 0.8974
+[foggytrust - label_flipping_attack] Iteration 769. Test_acc 0.8981
+[foggytrust - label_flipping_attack] Iteration 779. Test_acc 0.9002
+[foggytrust - label_flipping_attack] Iteration 789. Test_acc 0.9013
+[foggytrust - label_flipping_attack] Iteration 799. Test_acc 0.9000
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_2000__label_flipping_attack__foggytrust_fedadam__iter_000800.params
+Saved aggregator state: checkpoints/foggytrust__pair__every_10pct_of_2000__label_flipping_attack__foggytrust_fedadam__iter_000800.state.npz
+[foggytrust - label_flipping_attack] Iteration 809. Test_acc 0.9030
+[foggytrust - label_flipping_attack] Iteration 819. Test_acc 0.9034
+[foggytrust - label_flipping_attack] Iteration 829. Test_acc 0.9035
+[foggytrust - label_flipping_attack] Iteration 839. Test_acc 0.9048
+[foggytrust - label_flipping_attack] Iteration 849. Test_acc 0.9062
+[foggytrust - label_flipping_attack] Iteration 859. Test_acc 0.9081
+[foggytrust - label_flipping_attack] Iteration 869. Test_acc 0.9079
+[foggytrust - label_flipping_attack] Iteration 879. Test_acc 0.9103
+[foggytrust - label_flipping_attack] Iteration 889. Test_acc 0.9092
+[foggytrust - label_flipping_attack] Iteration 899. Test_acc 0.9095
+[foggytrust - label_flipping_attack] Iteration 909. Test_acc 0.9107
+[foggytrust - label_flipping_attack] Iteration 919. Test_acc 0.9126
+[foggytrust - label_flipping_attack] Iteration 929. Test_acc 0.9126
+[foggytrust - label_flipping_attack] Iteration 939. Test_acc 0.9122
+[foggytrust - label_flipping_attack] Iteration 949. Test_acc 0.9135
+[foggytrust - label_flipping_attack] Iteration 959. Test_acc 0.9120
+[foggytrust - label_flipping_attack] Iteration 969. Test_acc 0.9151
+[foggytrust - label_flipping_attack] Iteration 979. Test_acc 0.9156
+[foggytrust - label_flipping_attack] Iteration 989. Test_acc 0.9149
+[foggytrust - label_flipping_attack] Iteration 999. Test_acc 0.9156
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_2000__label_flipping_attack__foggytrust_fedadam__iter_001000.params
+Saved aggregator state: checkpoints/foggytrust__pair__every_10pct_of_2000__label_flipping_attack__foggytrust_fedadam__iter_001000.state.npz
+[foggytrust - label_flipping_attack] Iteration 1009. Test_acc 0.9161
+[foggytrust - label_flipping_attack] Iteration 1019. Test_acc 0.9164
+[foggytrust - label_flipping_attack] Iteration 1029. Test_acc 0.9182
+[foggytrust - label_flipping_attack] Iteration 1039. Test_acc 0.9182
+[foggytrust - label_flipping_attack] Iteration 1049. Test_acc 0.9188
+[foggytrust - label_flipping_attack] Iteration 1059. Test_acc 0.9190
+[foggytrust - label_flipping_attack] Iteration 1069. Test_acc 0.9202
+[foggytrust - label_flipping_attack] Iteration 1079. Test_acc 0.9198
+[foggytrust - label_flipping_attack] Iteration 1089. Test_acc 0.9200
+[foggytrust - label_flipping_attack] Iteration 1099. Test_acc 0.9207
+[foggytrust - label_flipping_attack] Iteration 1109. Test_acc 0.9204
+[foggytrust - label_flipping_attack] Iteration 1119. Test_acc 0.9213
+[foggytrust - label_flipping_attack] Iteration 1129. Test_acc 0.9227
+[foggytrust - label_flipping_attack] Iteration 1139. Test_acc 0.9240
+[foggytrust - label_flipping_attack] Iteration 1149. Test_acc 0.9234
+[foggytrust - label_flipping_attack] Iteration 1159. Test_acc 0.9245
+[foggytrust - label_flipping_attack] Iteration 1169. Test_acc 0.9235
+[foggytrust - label_flipping_attack] Iteration 1179. Test_acc 0.9238
+[foggytrust - label_flipping_attack] Iteration 1189. Test_acc 0.9246
+[foggytrust - label_flipping_attack] Iteration 1199. Test_acc 0.9247
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_2000__label_flipping_attack__foggytrust_fedadam__iter_001200.params
+Saved aggregator state: checkpoints/foggytrust__pair__every_10pct_of_2000__label_flipping_attack__foggytrust_fedadam__iter_001200.state.npz
+[foggytrust - label_flipping_attack] Iteration 1209. Test_acc 0.9264
+[foggytrust - label_flipping_attack] Iteration 1219. Test_acc 0.9265
+[foggytrust - label_flipping_attack] Iteration 1229. Test_acc 0.9268
+[foggytrust - label_flipping_attack] Iteration 1239. Test_acc 0.9276
+[foggytrust - label_flipping_attack] Iteration 1249. Test_acc 0.9294
+[foggytrust - label_flipping_attack] Iteration 1259. Test_acc 0.9283
+[foggytrust - label_flipping_attack] Iteration 1269. Test_acc 0.9280
+[foggytrust - label_flipping_attack] Iteration 1279. Test_acc 0.9291
+[foggytrust - label_flipping_attack] Iteration 1289. Test_acc 0.9302
+[foggytrust - label_flipping_attack] Iteration 1299. Test_acc 0.9310
+[foggytrust - label_flipping_attack] Iteration 1309. Test_acc 0.9309
+[foggytrust - label_flipping_attack] Iteration 1319. Test_acc 0.9326
+[foggytrust - label_flipping_attack] Iteration 1329. Test_acc 0.9319
+[foggytrust - label_flipping_attack] Iteration 1339. Test_acc 0.9328
+[foggytrust - label_flipping_attack] Iteration 1349. Test_acc 0.9329
+[foggytrust - label_flipping_attack] Iteration 1359. Test_acc 0.9345
+[foggytrust - label_flipping_attack] Iteration 1369. Test_acc 0.9343
+[foggytrust - label_flipping_attack] Iteration 1379. Test_acc 0.9342
+[foggytrust - label_flipping_attack] Iteration 1389. Test_acc 0.9346
+[foggytrust - label_flipping_attack] Iteration 1399. Test_acc 0.9354
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_2000__label_flipping_attack__foggytrust_fedadam__iter_001400.params
+Saved aggregator state: checkpoints/foggytrust__pair__every_10pct_of_2000__label_flipping_attack__foggytrust_fedadam__iter_001400.state.npz
+[foggytrust - label_flipping_attack] Iteration 1409. Test_acc 0.9338
+[foggytrust - label_flipping_attack] Iteration 1419. Test_acc 0.9359
+[foggytrust - label_flipping_attack] Iteration 1429. Test_acc 0.9356
+[foggytrust - label_flipping_attack] Iteration 1439. Test_acc 0.9354
+[foggytrust - label_flipping_attack] Iteration 1449. Test_acc 0.9357
+[foggytrust - label_flipping_attack] Iteration 1459. Test_acc 0.9367
+[foggytrust - label_flipping_attack] Iteration 1469. Test_acc 0.9373
+[foggytrust - label_flipping_attack] Iteration 1479. Test_acc 0.9372
+[foggytrust - label_flipping_attack] Iteration 1489. Test_acc 0.9376
+[foggytrust - label_flipping_attack] Iteration 1499. Test_acc 0.9392
+[foggytrust - label_flipping_attack] Iteration 1509. Test_acc 0.9375
+[foggytrust - label_flipping_attack] Iteration 1519. Test_acc 0.9401
+[foggytrust - label_flipping_attack] Iteration 1529. Test_acc 0.9390
+[foggytrust - label_flipping_attack] Iteration 1539. Test_acc 0.9396
+[foggytrust - label_flipping_attack] Iteration 1549. Test_acc 0.9396
+[foggytrust - label_flipping_attack] Iteration 1559. Test_acc 0.9405
+[foggytrust - label_flipping_attack] Iteration 1569. Test_acc 0.9399
+[foggytrust - label_flipping_attack] Iteration 1579. Test_acc 0.9416
+[foggytrust - label_flipping_attack] Iteration 1589. Test_acc 0.9413
+[foggytrust - label_flipping_attack] Iteration 1599. Test_acc 0.9406
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_2000__label_flipping_attack__foggytrust_fedadam__iter_001600.params
+Saved aggregator state: checkpoints/foggytrust__pair__every_10pct_of_2000__label_flipping_attack__foggytrust_fedadam__iter_001600.state.npz
+[foggytrust - label_flipping_attack] Iteration 1609. Test_acc 0.9417
+[foggytrust - label_flipping_attack] Iteration 1619. Test_acc 0.9423
+[foggytrust - label_flipping_attack] Iteration 1629. Test_acc 0.9434
+[foggytrust - label_flipping_attack] Iteration 1639. Test_acc 0.9430
+[foggytrust - label_flipping_attack] Iteration 1649. Test_acc 0.9436
+[foggytrust - label_flipping_attack] Iteration 1659. Test_acc 0.9448
+[foggytrust - label_flipping_attack] Iteration 1669. Test_acc 0.9434
+[foggytrust - label_flipping_attack] Iteration 1679. Test_acc 0.9451
+[foggytrust - label_flipping_attack] Iteration 1689. Test_acc 0.9441
+[foggytrust - label_flipping_attack] Iteration 1699. Test_acc 0.9446
+[foggytrust - label_flipping_attack] Iteration 1709. Test_acc 0.9453
+[foggytrust - label_flipping_attack] Iteration 1719. Test_acc 0.9459
+[foggytrust - label_flipping_attack] Iteration 1729. Test_acc 0.9458
+[foggytrust - label_flipping_attack] Iteration 1739. Test_acc 0.9459
+[foggytrust - label_flipping_attack] Iteration 1749. Test_acc 0.9460
+[foggytrust - label_flipping_attack] Iteration 1759. Test_acc 0.9453
+[foggytrust - label_flipping_attack] Iteration 1769. Test_acc 0.9468
+[foggytrust - label_flipping_attack] Iteration 1779. Test_acc 0.9469
+[foggytrust - label_flipping_attack] Iteration 1789. Test_acc 0.9464
+[foggytrust - label_flipping_attack] Iteration 1799. Test_acc 0.9481
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_2000__label_flipping_attack__foggytrust_fedadam__iter_001800.params
+Saved aggregator state: checkpoints/foggytrust__pair__every_10pct_of_2000__label_flipping_attack__foggytrust_fedadam__iter_001800.state.npz
+[foggytrust - label_flipping_attack] Iteration 1809. Test_acc 0.9477
+[foggytrust - label_flipping_attack] Iteration 1819. Test_acc 0.9477
+[foggytrust - label_flipping_attack] Iteration 1829. Test_acc 0.9477
+[foggytrust - label_flipping_attack] Iteration 1839. Test_acc 0.9478
+[foggytrust - label_flipping_attack] Iteration 1849. Test_acc 0.9490
+[foggytrust - label_flipping_attack] Iteration 1859. Test_acc 0.9493
+[foggytrust - label_flipping_attack] Iteration 1869. Test_acc 0.9502
+[foggytrust - label_flipping_attack] Iteration 1879. Test_acc 0.9495
+[foggytrust - label_flipping_attack] Iteration 1889. Test_acc 0.9495
+[foggytrust - label_flipping_attack] Iteration 1899. Test_acc 0.9504
+[foggytrust - label_flipping_attack] Iteration 1909. Test_acc 0.9505
+[foggytrust - label_flipping_attack] Iteration 1919. Test_acc 0.9504
+[foggytrust - label_flipping_attack] Iteration 1929. Test_acc 0.9512
+[foggytrust - label_flipping_attack] Iteration 1939. Test_acc 0.9510
+[foggytrust - label_flipping_attack] Iteration 1949. Test_acc 0.9514
+[foggytrust - label_flipping_attack] Iteration 1959. Test_acc 0.9515
+[foggytrust - label_flipping_attack] Iteration 1969. Test_acc 0.9517
+[foggytrust - label_flipping_attack] Iteration 1979. Test_acc 0.9518
+[foggytrust - label_flipping_attack] Iteration 1989. Test_acc 0.9525
+[foggytrust - label_flipping_attack] Iteration 1999. Test_acc 0.9520
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_2000__label_flipping_attack__foggytrust_fedadam__iter_002000.params
+Saved aggregator state: checkpoints/foggytrust__pair__every_10pct_of_2000__label_flipping_attack__foggytrust_fedadam__iter_002000.state.npz
