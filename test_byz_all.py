@@ -14,6 +14,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import numpy as np
 from tqdm import tqdm
 import model_helper
+import checkpoint_helper
 
 # Must match test_byz_p.get_byz / byzantine handlers
 # ALL_BYZ_TYPES = ("scaling_attack", "adaptive_attack", "krum_attack", "no", "label_flipping_attack", "trim_attack")
@@ -110,26 +111,6 @@ def _checkpoint_path(checkpoint_dir, runner_name, sweep_name, niter, *labels):
         )
         return best_base
     return requested_base
-
-
-def _checkpoint_will_resume(checkpoint_path, niter):
-    if not checkpoint_path:
-        return False
-    if os.path.exists(checkpoint_path):
-        # Legacy single-file checkpoints.
-        return True
-    base, ext = os.path.splitext(checkpoint_path)
-    max_iter = None if niter is None else int(niter)
-    for cand in glob.glob("%s__iter_*%s" % (base, ext)):
-        stem = os.path.splitext(cand)[0]
-        m = re.search(r"__iter_(\d+)$", stem)
-        if m is None:
-            continue
-        it = int(m.group(1))
-        if max_iter is not None and it > max_iter:
-            continue
-        return True
-    return False
 
 
 def _is_partitioned_foggytrust(runner_name, args):
@@ -296,7 +277,9 @@ def _byz_task(spec):
     args.checkpoint_path = _checkpoint_path(
         checkpoint_dir, runner_tag, "byz", args.niter, bt
     )
-    append_log = _checkpoint_will_resume(args.checkpoint_path, args.niter)
+    append_log = checkpoint_helper.has_checkpoint_for_resume(
+        args.checkpoint_path, args.niter
+    )
     if log_dir:
         log_path = os.path.join(log_dir, "%s.txt" % (bt,))
         with _redirect_stdout_stderr(log_path, append=append_log):
@@ -318,7 +301,9 @@ def _agg_task(spec):
     args.checkpoint_path = _checkpoint_path(
         checkpoint_dir, runner_tag, "agg", args.niter, agg_tag
     )
-    append_log = _checkpoint_will_resume(args.checkpoint_path, args.niter)
+    append_log = checkpoint_helper.has_checkpoint_for_resume(
+        args.checkpoint_path, args.niter
+    )
     if log_dir:
         log_path = os.path.join(log_dir, "%s.txt" % (agg_tag,))
         with _redirect_stdout_stderr(log_path, append=append_log):
@@ -341,7 +326,9 @@ def _pair_task(spec):
     args.checkpoint_path = _checkpoint_path(
         checkpoint_dir, runner_tag, "pair", args.niter, bt, agg_tag
     )
-    append_log = _checkpoint_will_resume(args.checkpoint_path, args.niter)
+    append_log = checkpoint_helper.has_checkpoint_for_resume(
+        args.checkpoint_path, args.niter
+    )
     if log_dir:
         log_path = os.path.join(log_dir, "%s__%s.txt" % (bt, agg_tag))
         with _redirect_stdout_stderr(log_path, append=append_log):

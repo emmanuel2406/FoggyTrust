@@ -54,6 +54,16 @@ def find_latest_checkpoint(checkpoint_path, niter):
     return best_path, best_iter
 
 
+def has_checkpoint_for_resume(checkpoint_path, niter=None):
+    """True when a legacy/base or iter-suffixed checkpoint can be resumed."""
+    if not checkpoint_path:
+        return False
+    latest_path, _ = find_latest_checkpoint(checkpoint_path, niter)
+    if latest_path is not None:
+        return True
+    return os.path.exists(checkpoint_path)
+
+
 def _checkpoint_target_path(args, iteration=None):
     checkpoint_path = getattr(args, "checkpoint_path", None)
     if not checkpoint_path:
