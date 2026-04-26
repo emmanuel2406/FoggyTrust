@@ -18,17 +18,16 @@ import checkpoint_helper
 
 # Must match test_byz_p.get_byz / byzantine handlers
 # ALL_BYZ_TYPES = ("scaling_attack", "adaptive_attack", "krum_attack", "no", "label_flipping_attack", "trim_attack")
-ALL_BYZ_TYPES = ("no", "scaling_attack", "label_flipping_attack", "trim_attack", "krum_attack")
+ALL_BYZ_TYPES = ("trim_attack",)
 
-# ALL_BYZ_TYPES = ("label_flipping_attack", "krum_attack", "trim_attack")
 # Must match test_byz_p.build_arg_parser --aggregation choices
 # Set to () to skip flat aggregation sweeps.
-ALL_AGGREGATIONS = ("fltrust", "fedavg", "trimmed_mean", "median", "krum", "scaffold")
-# ALL_AGGREGATIONS = ("fltrust","fedavg",)
+# ALL_AGGREGATIONS = ("fltrust", "fedavg", "trimmed_mean", "median", "krum")
+ALL_AGGREGATIONS = ("fltrust","fedavg")
 
 # Must match test_foggytrust.build_arg_parser --foggy_aggregation choices.
 # Keep a single default to preserve prior one-run foggytrust sweep behavior.
-FOGGYTRUST_AGGREGATIONS = ("fedadam",)
+FOGGYTRUST_AGGREGATIONS = ("fedavg",)
 
 # Thread-local sinks: ``contextlib.redirect_stdout`` swaps *global* sys.stdout, which breaks
 # when ``ThreadPoolExecutor`` runs several experiments at once (all prints share one stream).
@@ -49,7 +48,7 @@ def _resolve_runner_module(runner):
     if runner_key in ("foggytrust", "test_foggytrust"):
         return "foggytrust", importlib.import_module("test_foggytrust")
     raise ValueError(
-        "Unknown runner %r. Use one of: flat, test_byz_p, foggytrust, test_foggytrust."
+        "Unknown runner %r. Use one of: flat, test_byz_p, foggytrust, test_foggytrust, all."
         % (runner,)
     )
 
@@ -229,7 +228,8 @@ def _extract_script_flags_from_argv(argv):
     max_workers : int or None
         ``None`` → ``ThreadPoolExecutor`` default pool size; ``1`` → sequential runs.
     runner : str
-        ``flat`` (``test_byz_p``) or ``foggytrust`` (``test_foggytrust``).
+        ``flat`` (``test_byz_p``), ``foggytrust`` (``test_foggytrust``),
+        or ``all`` (run flat then foggytrust).
     checkpoint_dir : str or None
         Default ``"checkpoints"``. Each sweep run loads/saves checkpoints every 10%
         of that run's ``niter``.
@@ -344,6 +344,12 @@ def _asr_row(out):
     return np.asarray(ar, dtype=np.float64)
 
 
+def _align_rows_to_union_eval_grid(outs):
+    return checkpoint_helper.align_eval_outputs_for_resume(
+        outs, asr_getter=_asr_row
+    )
+
+
 def _finalize_byzantine_table(byz_types, outs):
     if len(byz_types) == 0:
         empty_eval = np.asarray([], dtype=np.int64)
@@ -357,22 +363,7 @@ def _finalize_byzantine_table(byz_types, outs):
             "results_asr_by_type": {},
         }
 
-    rows = []
-    asr_rows = []
-    eval_x = None
-    for bt, out in zip(byz_types, outs):
-        x = out["eval_iteration"]
-        y = out["test_accuracy"]
-        if eval_x is None:
-            eval_x = x
-        elif not np.array_equal(eval_x, x):
-            raise ValueError(
-                "eval_iteration mismatch for byz_type %r (expected common grid)." % (bt,)
-            )
-        rows.append(y)
-        asr_rows.append(_asr_row(out))
-    acc = np.stack(rows, axis=0)
-    asr = np.stack(asr_rows, axis=0)
+    eval_x, acc, asr = _align_rows_to_union_eval_grid(outs)
     results_by_type = {bt: acc[i].copy() for i, bt in enumerate(byz_types)}
     results_asr_by_type = {bt: asr[i].copy() for i, bt in enumerate(byz_types)}
     return {
@@ -398,22 +389,7 @@ def _finalize_aggregation_table(aggregations, outs):
             "results_asr_by_agg": {},
         }
 
-    rows = []
-    asr_rows = []
-    eval_x = None
-    for agg, out in zip(aggregations, outs):
-        x = out["eval_iteration"]
-        y = out["test_accuracy"]
-        if eval_x is None:
-            eval_x = x
-        elif not np.array_equal(eval_x, x):
-            raise ValueError(
-                "eval_iteration mismatch for aggregation %r (expected common grid)." % (agg,)
-            )
-        rows.append(y)
-        asr_rows.append(_asr_row(out))
-    acc = np.stack(rows, axis=0)
-    asr = np.stack(asr_rows, axis=0)
+    eval_x, acc, asr = _align_rows_to_union_eval_grid(outs)
     results_by_agg = {agg: acc[i].copy() for i, agg in enumerate(aggregations)}
     results_asr_by_agg = {agg: asr[i].copy() for i, agg in enumerate(aggregations)}
     return {
@@ -446,20 +422,9 @@ def _finalize_pairwise_table(byz_types, aggregations, outs):
             "results_asr_by_pair": {},
         }
 
-    eval_x = None
-    rows = []
-    asr_rows = []
-    for o in outs:
-        x = o["eval_iteration"]
-        y = o["test_accuracy"]
-        if eval_x is None:
-            eval_x = x
-        elif not np.array_equal(eval_x, x):
-            raise ValueError("eval_iteration mismatch in pairwise sweep (expected common grid).")
-        rows.append(y)
-        asr_rows.append(_asr_row(o))
-    acc = np.reshape(np.stack(rows, axis=0), (n_byz, n_agg, -1))
-    asr = np.reshape(np.stack(asr_rows, axis=0), (n_byz, n_agg, -1))
+    eval_x, flat_acc, flat_asr = _align_rows_to_union_eval_grid(outs)
+    acc = np.reshape(flat_acc, (n_byz, n_agg, -1))
+    asr = np.reshape(flat_asr, (n_byz, n_agg, -1))
     results_by_pair = {}
     results_asr_by_pair = {}
     for i, bt in enumerate(byz_types):
@@ -689,15 +654,9 @@ def build_level2_pairwise_timeseries_table(
     )
 
 
-if __name__ == "__main__":
-    argv_rest, checkpoint_dir, max_workers, runner = _extract_script_flags_from_argv(sys.argv[1:])
-    runner_name, runner_module = _resolve_runner_module(runner)
-    base_args = runner_module.parse_args(argv_rest)
-    log_dir = "logs_%s" % (base_args.dataset,)
-    os.makedirs(log_dir, exist_ok=True)
-    byz_types = tuple(ALL_BYZ_TYPES)
+def _run_runner_pairwise_sweep(spec):
+    runner_name, base_args, byz_types, log_dir, checkpoint_dir, max_workers = spec
     aggs = tuple(_default_aggregations_for_runner(runner_name))
-
     table = build_pairwise_timeseries_table(
         base_args,
         byz_types,
@@ -707,12 +666,53 @@ if __name__ == "__main__":
         max_workers=max_workers,
         runner=runner_name,
     )
-    n_runs = len(byz_types) * len(aggs)
-    print("Pairwise sweep — runner:", runner_name)
-    print("Pairwise sweep — byz_types:", table["byz_types"])
-    print("Pairwise sweep — aggregations:", table["aggregations"])
-    print("Pairwise sweep — n_runs (|byz| x |agg|):", n_runs)
-    print("Pairwise sweep — checkpoint_dir:", checkpoint_dir)
-    print("Pairwise sweep — eval_iteration shape:", table["eval_iteration"].shape)
-    print("Pairwise sweep — test_accuracy shape:", table["test_accuracy"].shape)
-    print("Pairwise sweep — attack_success_rate shape:", table["attack_success_rate"].shape)
+    return runner_name, aggs, table
+
+
+if __name__ == "__main__":
+    argv_rest, checkpoint_dir, max_workers, runner = _extract_script_flags_from_argv(sys.argv[1:])
+    runner_key = (runner or "flat").strip().lower()
+    if runner_key == "all":
+        runner_specs = (
+            ("flat", importlib.import_module("test_byz_p")),
+            ("foggytrust", importlib.import_module("test_foggytrust")),
+        )
+        # Use FoggyTrust parser for superset CLI coverage (includes foggy-only args).
+        base_args = runner_specs[1][1].parse_args(argv_rest)
+        print("Runner mode 'all': executing flat + foggytrust sweeps.")
+    else:
+        runner_name, runner_module = _resolve_runner_module(runner_key)
+        runner_specs = ((runner_name, runner_module),)
+        base_args = runner_module.parse_args(argv_rest)
+
+    log_dir = "logs_%s" % (base_args.dataset,)
+    os.makedirs(log_dir, exist_ok=True)
+    byz_types = tuple(ALL_BYZ_TYPES)
+    runner_jobs = [
+        (runner_name, copy.deepcopy(base_args), byz_types, log_dir, checkpoint_dir, max_workers)
+        for runner_name, _runner_module in runner_specs
+    ]
+    runner_results = {}
+    if len(runner_jobs) == 1:
+        runner_name, aggs, table = _run_runner_pairwise_sweep(runner_jobs[0])
+        runner_results[runner_name] = (aggs, table)
+    else:
+        with ThreadPoolExecutor(max_workers=len(runner_jobs)) as ex:
+            fut_to_runner = {
+                ex.submit(_run_runner_pairwise_sweep, job): job[0] for job in runner_jobs
+            }
+            for fut in as_completed(fut_to_runner):
+                runner_name, aggs, table = fut.result()
+                runner_results[runner_name] = (aggs, table)
+
+    for runner_name, _runner_module in runner_specs:
+        aggs, table = runner_results[runner_name]
+        n_runs = len(byz_types) * len(aggs)
+        print("Pairwise sweep — runner:", runner_name)
+        print("Pairwise sweep — byz_types:", table["byz_types"])
+        print("Pairwise sweep — aggregations:", table["aggregations"])
+        print("Pairwise sweep — n_runs (|byz| x |agg|):", n_runs)
+        print("Pairwise sweep — checkpoint_dir:", checkpoint_dir)
+        print("Pairwise sweep — eval_iteration shape:", table["eval_iteration"].shape)
+        print("Pairwise sweep — test_accuracy shape:", table["test_accuracy"].shape)
+        print("Pairwise sweep — attack_success_rate shape:", table["attack_success_rate"].shape)

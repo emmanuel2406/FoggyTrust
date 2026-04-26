@@ -1,0 +1,4 @@
+Checkpoint family niter mismatch while checking completion; using requested schedule path: checkpoints/flat__pair__every_10pct_of_300__trim_attack__fltrust.params
+SnapshotSafari resize auto-detected: 96x128
+Checkpoint not found, starting fresh: checkpoints/flat__pair__every_10pct_of_300__trim_attack__fltrust.params
+Resume status: start_iter=0, niter=300, remaining_iterations=300

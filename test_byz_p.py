@@ -144,6 +144,8 @@ def _normalize_dataset_name(dataset):
         return "fashionmnist"
     if key == "mnist":
         return "mnist"
+    if key == "cifar10":
+        return "cifar10"
     if key == "snapshotsafari":
         return "snapshotsafari"
     raise NotImplementedError("Unknown dataset: %r" % (dataset,))
@@ -154,6 +156,10 @@ def get_shapes(dataset, snapshot_num_labels=None):
     dataset_key = _normalize_dataset_name(dataset)
     if dataset_key in ("fashionmnist", "mnist"):
         num_inputs = 28 * 28
+        num_outputs = 10
+        num_labels = 10
+    elif dataset_key == "cifar10":
+        num_inputs = 32 * 32 * 3
         num_outputs = 10
         num_labels = 10
     elif dataset_key == "snapshotsafari":
@@ -301,6 +307,12 @@ def load_data(dataset, args=None):
         train_data = mx.gluon.data.DataLoader(mx.gluon.data.vision.MNIST(train=True, transform=transform), 60000, shuffle=True, last_batch='rollover')
         test_data = mx.gluon.data.DataLoader(mx.gluon.data.vision.MNIST(train=False, transform=transform), 256, shuffle=False, last_batch='rollover')
         meta = {"num_labels": 10}
+    elif dataset_key == "cifar10":
+        def transform(data, label):
+            return nd.transpose(data.astype(np.float32), (2, 0, 1)) / 255, label.astype(np.float32)
+        train_data = mx.gluon.data.DataLoader(mx.gluon.data.vision.CIFAR10(train=True, transform=transform), 50000, shuffle=True, last_batch='rollover')
+        test_data = mx.gluon.data.DataLoader(mx.gluon.data.vision.CIFAR10(train=False, transform=transform), 256, shuffle=False, last_batch='rollover')
+        meta = {"num_labels": 10}
     elif dataset_key == "snapshotsafari":
         if args is None:
             raise ValueError("args are required when dataset is SnapshotSafari")
@@ -399,6 +411,16 @@ def assign_data(train_data, bias, ctx, num_labels=10, num_workers=100, server_pc
     
         
 def main(args):
+    if checkpoint_helper.maybe_skip_training_due_to_completed_checkpoint(args):
+        return {
+            "eval_iteration": np.asarray([], dtype=np.int64),
+            "test_accuracy": np.asarray([], dtype=np.float64),
+            "attack_success_rate": None,
+        }
+
+    # Enforce dataset-driven architecture (e.g., CIFAR-10 -> ResNet-20).
+    args.net = model_helper.resolve_model_type(args.dataset, args.net)
+
     # device to use
     ctx = get_device(args.gpu)
     batch_size = args.batch_size
@@ -453,6 +475,19 @@ def main(args):
         # initialization
         net.collect_params().initialize(mx.init.Xavier(magnitude=2.24), force_reinit=True, ctx=ctx)
         start_iter = _load_checkpoint_if_present(net, args, ctx)
+        start_iter = max(0, min(int(start_iter), int(niter)))
+        remaining_iters = int(niter) - int(start_iter)
+        print(
+            "Resume status: start_iter=%d, niter=%d, remaining_iterations=%d"
+            % (int(start_iter), int(niter), int(remaining_iters))
+        )
+        if remaining_iters <= 0:
+            print("No training iterations to run (checkpoint already at target niter).")
+            return {
+                "eval_iteration": np.asarray([], dtype=np.int64),
+                "test_accuracy": np.asarray([], dtype=np.float64),
+                "attack_success_rate": None,
+            }
         if args.aggregation == "scaffold":
             checkpoint_helper.load_aggregator_state_if_present(
                 scaffold_aggregator, args, ctx

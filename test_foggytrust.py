@@ -19,6 +19,19 @@ import foggytrust_data
 import test_byz_p as tbp
 
 
+def _canonicalize_dataset_name(dataset):
+    dataset_key = tbp._normalize_dataset_name(dataset)
+    if dataset_key == "fashionmnist":
+        return "FashionMNIST"
+    if dataset_key == "mnist":
+        return "mnist"
+    if dataset_key == "cifar10":
+        return "CIFAR-10"
+    if dataset_key == "snapshotsafari":
+        return "SnapshotSafari"
+    raise NotImplementedError("Unknown dataset: %r" % (dataset,))
+
+
 def build_arg_parser():
     parser = tbp.build_arg_parser()
     aggregation_action = None
@@ -153,11 +166,20 @@ def _print_partition_summary(partition, fog_server_pc, fog_server_pc_mode):
 
 
 def main(args):
+    # Canonicalize once so downstream code paths (data/model/partition) stay aligned.
+    args.dataset = _canonicalize_dataset_name(args.dataset)
+    args.net = tbp.model_helper.resolve_model_type(args.dataset, args.net)
     if str(getattr(args, "aggregation", "foggytrust")).strip().lower() != "foggytrust":
         raise ValueError(
             "test_foggytrust enforces --aggregation=foggytrust; "
             "use --foggy_aggregation to choose the level-2 fog->cloud rule."
         )
+    if checkpoint_helper.maybe_skip_training_due_to_completed_checkpoint(args):
+        return {
+            "eval_iteration": np.asarray([], dtype=np.int64),
+            "test_accuracy": np.asarray([], dtype=np.float64),
+            "attack_success_rate": None,
+        }
 
     ctx = tbp.get_device(args.gpu)
     batch_size = args.batch_size
@@ -183,6 +205,19 @@ def main(args):
             mx.init.Xavier(magnitude=2.24), force_reinit=True, ctx=ctx
         )
         start_iter = checkpoint_helper.load_model_checkpoint_if_present(net, args, ctx)
+        start_iter = max(0, min(int(start_iter), int(niter)))
+        remaining_iters = int(niter) - int(start_iter)
+        print(
+            "Resume status: start_iter=%d, niter=%d, remaining_iterations=%d"
+            % (int(start_iter), int(niter), int(remaining_iters))
+        )
+        if remaining_iters <= 0:
+            print("No training iterations to run (checkpoint already at target niter).")
+            return {
+                "eval_iteration": np.asarray([], dtype=np.int64),
+                "test_accuracy": np.asarray([], dtype=np.float64),
+                "attack_success_rate": None,
+            }
         softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss()
 
         test_acc_list = []

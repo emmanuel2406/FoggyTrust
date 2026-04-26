@@ -1,0 +1,137 @@
+#!/usr/bin/env python3
+import argparse
+import os
+import re
+from pathlib import Path
+
+
+CHECKPOINT_PATTERN = re.compile(r"^\s*Saved checkpoint:\s*(.+?)\s*$")
+
+
+def _resolve_checkpoint_path(raw_path, root_dir):
+    candidate = Path(raw_path)
+    if candidate.is_absolute():
+        return candidate
+    return (root_dir / candidate).resolve()
+
+
+def clean_one_log(log_path, root_dir, clear_log=True):
+    log_file = Path(log_path).resolve()
+    if not log_file.exists():
+        raise FileNotFoundError("Log file does not exist: %s" % (log_file,))
+    if not log_file.is_file():
+        raise ValueError("Path is not a file: %s" % (log_file,))
+
+    removed_checkpoints = []
+    missing_checkpoints = []
+
+    with log_file.open("r", encoding="utf-8") as handle:
+        for line in handle:
+            match = CHECKPOINT_PATTERN.match(line)
+            if match is None:
+                continue
+            checkpoint_path = _resolve_checkpoint_path(match.group(1), root_dir)
+            if checkpoint_path.exists() and checkpoint_path.is_file():
+                checkpoint_path.unlink()
+                removed_checkpoints.append(str(checkpoint_path))
+            else:
+                missing_checkpoints.append(str(checkpoint_path))
+
+    # Clear the log only after checkpoint cleanup has been attempted.
+    if clear_log:
+        log_file.write_text("", encoding="utf-8")
+
+    return removed_checkpoints, missing_checkpoints
+
+
+def _expand_log_inputs(inputs):
+    """
+    Expand positional inputs into concrete log files.
+
+    Each input may be:
+    - a file path (used directly)
+    - a directory path (all direct child files are included)
+    """
+    expanded = []
+    for raw_path in inputs:
+        path_obj = Path(raw_path).resolve()
+        if not path_obj.exists():
+            raise FileNotFoundError("Input path does not exist: %s" % (path_obj,))
+        if path_obj.is_dir():
+            for child in sorted(path_obj.iterdir()):
+                if child.is_file():
+                    expanded.append(child)
+            continue
+        if path_obj.is_file():
+            expanded.append(path_obj)
+            continue
+        raise ValueError("Unsupported input path: %s" % (path_obj,))
+
+    # De-duplicate while preserving order.
+    seen = set()
+    unique = []
+    for p in expanded:
+        key = str(p)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(p)
+    return unique
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description=(
+            "Scan log .txt files for 'Saved checkpoint:' entries, remove matched "
+            "checkpoint files, then clear the log files."
+        )
+    )
+    parser.add_argument(
+        "logs",
+        nargs="+",
+        help=(
+            "One or more log files and/or directories. "
+            "Directories are expanded to all direct child files."
+        ),
+    )
+    parser.add_argument(
+        "--only-checkpoints",
+        action="store_true",
+        help=(
+            "Delete checkpoint files referenced in logs, but do not clear "
+            "the log files themselves."
+        ),
+    )
+    args = parser.parse_args()
+
+    # Resolve relative checkpoint paths against the script directory
+    # (expected to be the FoggyTrust project root).
+    root_dir = Path(__file__).resolve().parent
+
+    log_files = _expand_log_inputs(args.logs)
+
+    total_removed = 0
+    total_missing = 0
+    for log_path in log_files:
+        removed, missing = clean_one_log(
+            log_path, root_dir, clear_log=(not args.only_checkpoints)
+        )
+        total_removed += len(removed)
+        total_missing += len(missing)
+        if args.only_checkpoints:
+            print("Scanned log (left unchanged): %s" % (Path(log_path).resolve(),))
+        else:
+            print("Cleared log: %s" % (Path(log_path).resolve(),))
+        for checkpoint in removed:
+            print("Removed checkpoint: %s" % (checkpoint,))
+        for checkpoint in missing:
+            print("Checkpoint not found (skipped): %s" % (checkpoint,))
+
+    print(
+        "Done. logs_cleared=%d checkpoints_removed=%d checkpoints_missing=%d"
+        % (len(log_files), total_removed, total_missing)
+    )
+
+
+if __name__ == "__main__":
+    main()

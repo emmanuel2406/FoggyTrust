@@ -1,0 +1,203 @@
+Checkpoint family niter mismatch while checking completion; using requested schedule path: checkpoints/foggytrust__pair__every_10pct_of_1500__scaling_attack__foggytrust_fedavg.params
+Checkpoint not found, starting fresh: checkpoints/foggytrust__pair__every_10pct_of_1500__scaling_attack__foggytrust_fedavg.params
+Resume status: start_iter=0, niter=1500, remaining_iterations=1500
+FoggyTrust trusted-data mode: replicated per_group=100 (1000 total across groups)
+FoggyTrust groups fixed at startup: 10 groups
+  fog_group=0 workers=10 byzantine=2 trusted_points=100
+  fog_group=1 workers=10 byzantine=2 trusted_points=100
+  fog_group=2 workers=10 byzantine=2 trusted_points=100
+  fog_group=3 workers=10 byzantine=2 trusted_points=100
+  fog_group=4 workers=10 byzantine=2 trusted_points=100
+  fog_group=5 workers=10 byzantine=2 trusted_points=100
+  fog_group=6 workers=10 byzantine=2 trusted_points=100
+  fog_group=7 workers=10 byzantine=2 trusted_points=100
+  fog_group=8 workers=10 byzantine=2 trusted_points=100
+  fog_group=9 workers=10 byzantine=2 trusted_points=100
+Aggregator state not found, starting fresh: checkpoints/foggytrust__pair__every_10pct_of_1500__scaling_attack__foggytrust_fedavg.state.npz
+Scaling attack: train with labels 7 -> 1 on Byzantine clients; attack success rate = fraction of test images with true label 7 that the global model predicts as 1 (FoggyTrust).
+[foggytrust - scaling_attack] Iteration 09. Test_acc 0.1648  Attack_succ_rate 0.3571 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 19. Test_acc 0.2101  Attack_succ_rate 0.1543 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 29. Test_acc 0.2281  Attack_succ_rate 0.0961 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 39. Test_acc 0.2486  Attack_succ_rate 0.0954 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 49. Test_acc 0.2642  Attack_succ_rate 0.0671 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 59. Test_acc 0.2823  Attack_succ_rate 0.0761 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 69. Test_acc 0.2961  Attack_succ_rate 0.0951 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 79. Test_acc 0.3062  Attack_succ_rate 0.0863 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 89. Test_acc 0.3166  Attack_succ_rate 0.0741 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 99. Test_acc 0.3254  Attack_succ_rate 0.0802 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 109. Test_acc 0.3328  Attack_succ_rate 0.0731 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 119. Test_acc 0.3397  Attack_succ_rate 0.0730 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 129. Test_acc 0.3454  Attack_succ_rate 0.0420 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 139. Test_acc 0.3592  Attack_succ_rate 0.0500 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 149. Test_acc 0.3634  Attack_succ_rate 0.0390 (src=7 tgt=1)
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__scaling_attack__foggytrust_fedavg__iter_000150.params
+[foggytrust - scaling_attack] Iteration 159. Test_acc 0.3719  Attack_succ_rate 0.0586 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 169. Test_acc 0.3762  Attack_succ_rate 0.0401 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 179. Test_acc 0.3774  Attack_succ_rate 0.0261 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 189. Test_acc 0.3722  Attack_succ_rate 0.0210 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 199. Test_acc 0.3845  Attack_succ_rate 0.0291 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 209. Test_acc 0.3891  Attack_succ_rate 0.0271 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 219. Test_acc 0.3995  Attack_succ_rate 0.0390 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 229. Test_acc 0.3934  Attack_succ_rate 0.0220 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 239. Test_acc 0.3966  Attack_succ_rate 0.0211 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 249. Test_acc 0.4084  Attack_succ_rate 0.0290 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 259. Test_acc 0.4120  Attack_succ_rate 0.0271 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 269. Test_acc 0.4182  Attack_succ_rate 0.0291 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 279. Test_acc 0.4036  Attack_succ_rate 0.0130 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 289. Test_acc 0.4239  Attack_succ_rate 0.0280 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 299. Test_acc 0.4169  Attack_succ_rate 0.0380 (src=7 tgt=1)
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__scaling_attack__foggytrust_fedavg__iter_000300.params
+[foggytrust - scaling_attack] Iteration 309. Test_acc 0.4139  Attack_succ_rate 0.0170 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 319. Test_acc 0.4236  Attack_succ_rate 0.0176 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 329. Test_acc 0.4253  Attack_succ_rate 0.0191 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 339. Test_acc 0.4353  Attack_succ_rate 0.0190 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 349. Test_acc 0.4311  Attack_succ_rate 0.0120 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 359. Test_acc 0.4317  Attack_succ_rate 0.0131 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 369. Test_acc 0.4381  Attack_succ_rate 0.0210 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 379. Test_acc 0.4407  Attack_succ_rate 0.0190 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 389. Test_acc 0.4425  Attack_succ_rate 0.0110 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 399. Test_acc 0.4566  Attack_succ_rate 0.0251 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 409. Test_acc 0.4598  Attack_succ_rate 0.0190 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 419. Test_acc 0.4548  Attack_succ_rate 0.0220 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 429. Test_acc 0.4540  Attack_succ_rate 0.0271 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 439. Test_acc 0.4550  Attack_succ_rate 0.0300 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 449. Test_acc 0.4385  Attack_succ_rate 0.0260 (src=7 tgt=1)
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__scaling_attack__foggytrust_fedavg__iter_000450.params
+[foggytrust - scaling_attack] Iteration 459. Test_acc 0.4392  Attack_succ_rate 0.0270 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 469. Test_acc 0.4471  Attack_succ_rate 0.0280 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 479. Test_acc 0.4689  Attack_succ_rate 0.0205 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 489. Test_acc 0.4628  Attack_succ_rate 0.0351 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 499. Test_acc 0.4802  Attack_succ_rate 0.0210 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 509. Test_acc 0.4670  Attack_succ_rate 0.0260 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 519. Test_acc 0.4732  Attack_succ_rate 0.0201 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 529. Test_acc 0.4799  Attack_succ_rate 0.0140 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 539. Test_acc 0.4563  Attack_succ_rate 0.0140 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 549. Test_acc 0.4605  Attack_succ_rate 0.0120 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 559. Test_acc 0.4625  Attack_succ_rate 0.0221 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 569. Test_acc 0.4832  Attack_succ_rate 0.0110 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 579. Test_acc 0.4638  Attack_succ_rate 0.0230 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 589. Test_acc 0.4600  Attack_succ_rate 0.0170 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 599. Test_acc 0.4893  Attack_succ_rate 0.0140 (src=7 tgt=1)
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__scaling_attack__foggytrust_fedavg__iter_000600.params
+[foggytrust - scaling_attack] Iteration 609. Test_acc 0.4584  Attack_succ_rate 0.0080 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 619. Test_acc 0.4754  Attack_succ_rate 0.0090 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 629. Test_acc 0.4307  Attack_succ_rate 0.0030 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 639. Test_acc 0.4429  Attack_succ_rate 0.0059 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 649. Test_acc 0.4850  Attack_succ_rate 0.0090 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 659. Test_acc 0.4684  Attack_succ_rate 0.0200 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 669. Test_acc 0.4805  Attack_succ_rate 0.0070 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 679. Test_acc 0.4835  Attack_succ_rate 0.0090 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 689. Test_acc 0.4976  Attack_succ_rate 0.0110 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 699. Test_acc 0.4645  Attack_succ_rate 0.0170 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 709. Test_acc 0.4997  Attack_succ_rate 0.0120 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 719. Test_acc 0.4750  Attack_succ_rate 0.0050 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 729. Test_acc 0.4939  Attack_succ_rate 0.0120 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 739. Test_acc 0.4980  Attack_succ_rate 0.0080 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 749. Test_acc 0.4965  Attack_succ_rate 0.0110 (src=7 tgt=1)
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__scaling_attack__foggytrust_fedavg__iter_000750.params
+[foggytrust - scaling_attack] Iteration 759. Test_acc 0.4779  Attack_succ_rate 0.0060 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 769. Test_acc 0.5108  Attack_succ_rate 0.0130 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 779. Test_acc 0.4608  Attack_succ_rate 0.0130 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 789. Test_acc 0.4846  Attack_succ_rate 0.0120 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 799. Test_acc 0.4760  Attack_succ_rate 0.0273 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 809. Test_acc 0.4842  Attack_succ_rate 0.0080 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 819. Test_acc 0.4830  Attack_succ_rate 0.0120 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 829. Test_acc 0.5098  Attack_succ_rate 0.0180 (src=7 tgt=1)
+Loaded checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__scaling_attack__foggytrust_fedavg__iter_000750.params
+Resume status: start_iter=750, niter=1500, remaining_iterations=750
+FoggyTrust trusted-data mode: replicated per_group=100 (1000 total across groups)
+FoggyTrust groups fixed at startup: 10 groups
+  fog_group=0 workers=10 byzantine=2 trusted_points=100
+  fog_group=1 workers=10 byzantine=2 trusted_points=100
+  fog_group=2 workers=10 byzantine=2 trusted_points=100
+  fog_group=3 workers=10 byzantine=2 trusted_points=100
+  fog_group=4 workers=10 byzantine=2 trusted_points=100
+  fog_group=5 workers=10 byzantine=2 trusted_points=100
+  fog_group=6 workers=10 byzantine=2 trusted_points=100
+  fog_group=7 workers=10 byzantine=2 trusted_points=100
+  fog_group=8 workers=10 byzantine=2 trusted_points=100
+  fog_group=9 workers=10 byzantine=2 trusted_points=100
+Aggregator state not found, starting fresh: checkpoints/foggytrust__pair__every_10pct_of_1500__scaling_attack__foggytrust_fedavg__iter_000750.state.npz
+Scaling attack: train with labels 7 -> 1 on Byzantine clients; attack success rate = fraction of test images with true label 7 that the global model predicts as 1 (FoggyTrust).
+[foggytrust - scaling_attack] Iteration 759. Test_acc 0.4973  Attack_succ_rate 0.0120 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 769. Test_acc 0.4627  Attack_succ_rate 0.0040 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 779. Test_acc 0.4973  Attack_succ_rate 0.0160 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 789. Test_acc 0.5059  Attack_succ_rate 0.0201 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 799. Test_acc 0.4556  Attack_succ_rate 0.0240 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 809. Test_acc 0.4682  Attack_succ_rate 0.0170 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 819. Test_acc 0.5089  Attack_succ_rate 0.0080 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 829. Test_acc 0.4952  Attack_succ_rate 0.0160 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 839. Test_acc 0.5130  Attack_succ_rate 0.0160 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 849. Test_acc 0.5107  Attack_succ_rate 0.0160 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 859. Test_acc 0.4895  Attack_succ_rate 0.0090 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 869. Test_acc 0.5124  Attack_succ_rate 0.0100 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 879. Test_acc 0.4871  Attack_succ_rate 0.0220 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 889. Test_acc 0.4979  Attack_succ_rate 0.0080 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 899. Test_acc 0.4974  Attack_succ_rate 0.0050 (src=7 tgt=1)
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__scaling_attack__foggytrust_fedavg__iter_000900.params
+[foggytrust - scaling_attack] Iteration 909. Test_acc 0.5181  Attack_succ_rate 0.0186 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 919. Test_acc 0.4873  Attack_succ_rate 0.0221 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 929. Test_acc 0.5092  Attack_succ_rate 0.0160 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 939. Test_acc 0.4628  Attack_succ_rate 0.0050 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 949. Test_acc 0.4805  Attack_succ_rate 0.0100 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 959. Test_acc 0.4747  Attack_succ_rate 0.0150 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 969. Test_acc 0.4632  Attack_succ_rate 0.0170 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 979. Test_acc 0.4647  Attack_succ_rate 0.0080 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 989. Test_acc 0.4888  Attack_succ_rate 0.0130 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 999. Test_acc 0.5089  Attack_succ_rate 0.0090 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1009. Test_acc 0.4555  Attack_succ_rate 0.0060 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1019. Test_acc 0.5279  Attack_succ_rate 0.0210 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1029. Test_acc 0.4973  Attack_succ_rate 0.0080 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1039. Test_acc 0.4883  Attack_succ_rate 0.0060 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1049. Test_acc 0.5399  Attack_succ_rate 0.0090 (src=7 tgt=1)
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__scaling_attack__foggytrust_fedavg__iter_001050.params
+[foggytrust - scaling_attack] Iteration 1059. Test_acc 0.5090  Attack_succ_rate 0.0120 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1069. Test_acc 0.5040  Attack_succ_rate 0.0195 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1079. Test_acc 0.5347  Attack_succ_rate 0.0181 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1089. Test_acc 0.4634  Attack_succ_rate 0.0120 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1099. Test_acc 0.4430  Attack_succ_rate 0.0020 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1109. Test_acc 0.4661  Attack_succ_rate 0.0040 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1119. Test_acc 0.4745  Attack_succ_rate 0.0030 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1129. Test_acc 0.4952  Attack_succ_rate 0.0170 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1139. Test_acc 0.5176  Attack_succ_rate 0.0100 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1149. Test_acc 0.5321  Attack_succ_rate 0.0281 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1159. Test_acc 0.5095  Attack_succ_rate 0.0290 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1169. Test_acc 0.5172  Attack_succ_rate 0.0160 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1179. Test_acc 0.4916  Attack_succ_rate 0.0271 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1189. Test_acc 0.4430  Attack_succ_rate 0.0030 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1199. Test_acc 0.4140  Attack_succ_rate 0.0010 (src=7 tgt=1)
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__scaling_attack__foggytrust_fedavg__iter_001200.params
+[foggytrust - scaling_attack] Iteration 1209. Test_acc 0.5047  Attack_succ_rate 0.0010 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1219. Test_acc 0.5056  Attack_succ_rate 0.0270 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1229. Test_acc 0.5060  Attack_succ_rate 0.0146 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1239. Test_acc 0.5044  Attack_succ_rate 0.0381 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1249. Test_acc 0.4978  Attack_succ_rate 0.0581 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1259. Test_acc 0.5525  Attack_succ_rate 0.0040 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1269. Test_acc 0.5063  Attack_succ_rate 0.0592 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1279. Test_acc 0.4925  Attack_succ_rate 0.0160 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1289. Test_acc 0.5283  Attack_succ_rate 0.0160 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1299. Test_acc 0.5007  Attack_succ_rate 0.0721 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1309. Test_acc 0.5196  Attack_succ_rate 0.0060 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1319. Test_acc 0.5285  Attack_succ_rate 0.0020 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1329. Test_acc 0.5284  Attack_succ_rate 0.0090 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1339. Test_acc 0.5208  Attack_succ_rate 0.0040 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1349. Test_acc 0.5484  Attack_succ_rate 0.0130 (src=7 tgt=1)
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__scaling_attack__foggytrust_fedavg__iter_001350.params
+[foggytrust - scaling_attack] Iteration 1359. Test_acc 0.5608  Attack_succ_rate 0.0040 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1369. Test_acc 0.5038  Attack_succ_rate 0.0010 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1379. Test_acc 0.4166  Attack_succ_rate 0.0010 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1389. Test_acc 0.4938  Attack_succ_rate 0.0010 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1399. Test_acc 0.4945  Attack_succ_rate 0.0050 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1409. Test_acc 0.5414  Attack_succ_rate 0.0050 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1419. Test_acc 0.5446  Attack_succ_rate 0.0060 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1429. Test_acc 0.5698  Attack_succ_rate 0.0070 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1439. Test_acc 0.4947  Attack_succ_rate 0.0040 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1449. Test_acc 0.5036  Attack_succ_rate 0.0681 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1459. Test_acc 0.5263  Attack_succ_rate 0.0150 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1469. Test_acc 0.5220  Attack_succ_rate 0.0441 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1479. Test_acc 0.5142  Attack_succ_rate 0.0380 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1489. Test_acc 0.5531  Attack_succ_rate 0.0210 (src=7 tgt=1)
+[foggytrust - scaling_attack] Iteration 1499. Test_acc 0.5211  Attack_succ_rate 0.0371 (src=7 tgt=1)
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__scaling_attack__foggytrust_fedavg__iter_001500.params
+Checkpoint already complete (iter 1500/1500): checkpoints/foggytrust__pair__every_10pct_of_1500__scaling_attack__foggytrust_fedavg__iter_001500.params
+Skipping run: final checkpoint exists; not loading datasets/models.

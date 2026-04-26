@@ -1,0 +1,180 @@
+Checkpoint family niter mismatch while checking completion; using requested schedule path: checkpoints/foggytrust__pair__every_10pct_of_1500__trim_attack__foggytrust_fedavg.params
+Checkpoint not found, starting fresh: checkpoints/foggytrust__pair__every_10pct_of_1500__trim_attack__foggytrust_fedavg.params
+Resume status: start_iter=0, niter=1500, remaining_iterations=1500
+FoggyTrust trusted-data mode: replicated per_group=100 (1000 total across groups)
+FoggyTrust groups fixed at startup: 10 groups
+  fog_group=0 workers=10 byzantine=2 trusted_points=100
+  fog_group=1 workers=10 byzantine=2 trusted_points=100
+  fog_group=2 workers=10 byzantine=2 trusted_points=100
+  fog_group=3 workers=10 byzantine=2 trusted_points=100
+  fog_group=4 workers=10 byzantine=2 trusted_points=100
+  fog_group=5 workers=10 byzantine=2 trusted_points=100
+  fog_group=6 workers=10 byzantine=2 trusted_points=100
+  fog_group=7 workers=10 byzantine=2 trusted_points=100
+  fog_group=8 workers=10 byzantine=2 trusted_points=100
+  fog_group=9 workers=10 byzantine=2 trusted_points=100
+Aggregator state not found, starting fresh: checkpoints/foggytrust__pair__every_10pct_of_1500__trim_attack__foggytrust_fedavg.state.npz
+[foggytrust - trim_attack] Iteration 09. Test_acc 0.1050
+[foggytrust - trim_attack] Iteration 19. Test_acc 0.1587
+[foggytrust - trim_attack] Iteration 29. Test_acc 0.1979
+[foggytrust - trim_attack] Iteration 39. Test_acc 0.2295
+[foggytrust - trim_attack] Iteration 49. Test_acc 0.2469
+[foggytrust - trim_attack] Iteration 59. Test_acc 0.2665
+[foggytrust - trim_attack] Iteration 69. Test_acc 0.2801
+[foggytrust - trim_attack] Iteration 79. Test_acc 0.2913
+[foggytrust - trim_attack] Iteration 89. Test_acc 0.2991
+[foggytrust - trim_attack] Iteration 99. Test_acc 0.3072
+[foggytrust - trim_attack] Iteration 109. Test_acc 0.3102
+[foggytrust - trim_attack] Iteration 119. Test_acc 0.3210
+[foggytrust - trim_attack] Iteration 129. Test_acc 0.3251
+[foggytrust - trim_attack] Iteration 139. Test_acc 0.3331
+[foggytrust - trim_attack] Iteration 149. Test_acc 0.3392
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__trim_attack__foggytrust_fedavg__iter_000150.params
+[foggytrust - trim_attack] Iteration 159. Test_acc 0.3435
+[foggytrust - trim_attack] Iteration 169. Test_acc 0.3447
+[foggytrust - trim_attack] Iteration 179. Test_acc 0.3556
+[foggytrust - trim_attack] Iteration 189. Test_acc 0.3589
+[foggytrust - trim_attack] Iteration 199. Test_acc 0.3648
+[foggytrust - trim_attack] Iteration 209. Test_acc 0.3608
+[foggytrust - trim_attack] Iteration 219. Test_acc 0.3617
+[foggytrust - trim_attack] Iteration 229. Test_acc 0.3733
+[foggytrust - trim_attack] Iteration 239. Test_acc 0.3788
+[foggytrust - trim_attack] Iteration 249. Test_acc 0.3821
+[foggytrust - trim_attack] Iteration 259. Test_acc 0.3807
+[foggytrust - trim_attack] Iteration 269. Test_acc 0.3885
+[foggytrust - trim_attack] Iteration 279. Test_acc 0.3925
+[foggytrust - trim_attack] Iteration 289. Test_acc 0.3976
+[foggytrust - trim_attack] Iteration 299. Test_acc 0.4068
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__trim_attack__foggytrust_fedavg__iter_000300.params
+[foggytrust - trim_attack] Iteration 309. Test_acc 0.3949
+[foggytrust - trim_attack] Iteration 319. Test_acc 0.4105
+[foggytrust - trim_attack] Iteration 329. Test_acc 0.4197
+[foggytrust - trim_attack] Iteration 339. Test_acc 0.4189
+[foggytrust - trim_attack] Iteration 349. Test_acc 0.4206
+[foggytrust - trim_attack] Iteration 359. Test_acc 0.4154
+[foggytrust - trim_attack] Iteration 369. Test_acc 0.4276
+[foggytrust - trim_attack] Iteration 379. Test_acc 0.4331
+[foggytrust - trim_attack] Iteration 389. Test_acc 0.4195
+[foggytrust - trim_attack] Iteration 399. Test_acc 0.4377
+[foggytrust - trim_attack] Iteration 409. Test_acc 0.4369
+[foggytrust - trim_attack] Iteration 419. Test_acc 0.4127
+[foggytrust - trim_attack] Iteration 429. Test_acc 0.4322
+[foggytrust - trim_attack] Iteration 439. Test_acc 0.4053
+[foggytrust - trim_attack] Iteration 449. Test_acc 0.4390
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__trim_attack__foggytrust_fedavg__iter_000450.params
+[foggytrust - trim_attack] Iteration 459. Test_acc 0.4490
+[foggytrust - trim_attack] Iteration 469. Test_acc 0.4143
+[foggytrust - trim_attack] Iteration 479. Test_acc 0.4354
+[foggytrust - trim_attack] Iteration 489. Test_acc 0.4354
+[foggytrust - trim_attack] Iteration 499. Test_acc 0.4266
+[foggytrust - trim_attack] Iteration 509. Test_acc 0.4443
+[foggytrust - trim_attack] Iteration 519. Test_acc 0.4609
+[foggytrust - trim_attack] Iteration 529. Test_acc 0.4197
+[foggytrust - trim_attack] Iteration 539. Test_acc 0.4423
+[foggytrust - trim_attack] Iteration 549. Test_acc 0.4273
+[foggytrust - trim_attack] Iteration 559. Test_acc 0.4135
+[foggytrust - trim_attack] Iteration 569. Test_acc 0.4619
+[foggytrust - trim_attack] Iteration 579. Test_acc 0.4725
+[foggytrust - trim_attack] Iteration 589. Test_acc 0.4449
+[foggytrust - trim_attack] Iteration 599. Test_acc 0.3827
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__trim_attack__foggytrust_fedavg__iter_000600.params
+[foggytrust - trim_attack] Iteration 609. Test_acc 0.4721
+[foggytrust - trim_attack] Iteration 619. Test_acc 0.4543
+[foggytrust - trim_attack] Iteration 629. Test_acc 0.4042
+[foggytrust - trim_attack] Iteration 639. Test_acc 0.4625
+[foggytrust - trim_attack] Iteration 649. Test_acc 0.4552
+[foggytrust - trim_attack] Iteration 659. Test_acc 0.4667
+[foggytrust - trim_attack] Iteration 669. Test_acc 0.4515
+[foggytrust - trim_attack] Iteration 679. Test_acc 0.4379
+[foggytrust - trim_attack] Iteration 689. Test_acc 0.4839
+[foggytrust - trim_attack] Iteration 699. Test_acc 0.4840
+[foggytrust - trim_attack] Iteration 709. Test_acc 0.4834
+[foggytrust - trim_attack] Iteration 719. Test_acc 0.4072
+[foggytrust - trim_attack] Iteration 729. Test_acc 0.4862
+[foggytrust - trim_attack] Iteration 739. Test_acc 0.4656
+[foggytrust - trim_attack] Iteration 749. Test_acc 0.4662
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__trim_attack__foggytrust_fedavg__iter_000750.params
+[foggytrust - trim_attack] Iteration 759. Test_acc 0.4851
+[foggytrust - trim_attack] Iteration 769. Test_acc 0.4846
+[foggytrust - trim_attack] Iteration 779. Test_acc 0.4897
+[foggytrust - trim_attack] Iteration 789. Test_acc 0.4942
+[foggytrust - trim_attack] Iteration 799. Test_acc 0.4486
+[foggytrust - trim_attack] Iteration 809. Test_acc 0.4927
+[foggytrust - trim_attack] Iteration 819. Test_acc 0.4933
+[foggytrust - trim_attack] Iteration 829. Test_acc 0.5078
+[foggytrust - trim_attack] Iteration 839. Test_acc 0.4930
+[foggytrust - trim_attack] Iteration 849. Test_acc 0.5017
+[foggytrust - trim_attack] Iteration 859. Test_acc 0.4958
+[foggytrust - trim_attack] Iteration 869. Test_acc 0.5086
+[foggytrust - trim_attack] Iteration 879. Test_acc 0.4700
+[foggytrust - trim_attack] Iteration 889. Test_acc 0.5031
+[foggytrust - trim_attack] Iteration 899. Test_acc 0.5166
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__trim_attack__foggytrust_fedavg__iter_000900.params
+[foggytrust - trim_attack] Iteration 909. Test_acc 0.4831
+[foggytrust - trim_attack] Iteration 919. Test_acc 0.5026
+[foggytrust - trim_attack] Iteration 929. Test_acc 0.4799
+[foggytrust - trim_attack] Iteration 939. Test_acc 0.4660
+[foggytrust - trim_attack] Iteration 949. Test_acc 0.4760
+[foggytrust - trim_attack] Iteration 959. Test_acc 0.5160
+[foggytrust - trim_attack] Iteration 969. Test_acc 0.5203
+[foggytrust - trim_attack] Iteration 979. Test_acc 0.4917
+[foggytrust - trim_attack] Iteration 989. Test_acc 0.5169
+[foggytrust - trim_attack] Iteration 999. Test_acc 0.5246
+[foggytrust - trim_attack] Iteration 1009. Test_acc 0.4819
+[foggytrust - trim_attack] Iteration 1019. Test_acc 0.4939
+[foggytrust - trim_attack] Iteration 1029. Test_acc 0.5188
+[foggytrust - trim_attack] Iteration 1039. Test_acc 0.4975
+[foggytrust - trim_attack] Iteration 1049. Test_acc 0.5182
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__trim_attack__foggytrust_fedavg__iter_001050.params
+[foggytrust - trim_attack] Iteration 1059. Test_acc 0.4430
+[foggytrust - trim_attack] Iteration 1069. Test_acc 0.5225
+[foggytrust - trim_attack] Iteration 1079. Test_acc 0.4918
+[foggytrust - trim_attack] Iteration 1089. Test_acc 0.5152
+[foggytrust - trim_attack] Iteration 1099. Test_acc 0.4719
+[foggytrust - trim_attack] Iteration 1109. Test_acc 0.5338
+[foggytrust - trim_attack] Iteration 1119. Test_acc 0.5132
+[foggytrust - trim_attack] Iteration 1129. Test_acc 0.5161
+[foggytrust - trim_attack] Iteration 1139. Test_acc 0.5010
+[foggytrust - trim_attack] Iteration 1149. Test_acc 0.5211
+[foggytrust - trim_attack] Iteration 1159. Test_acc 0.5238
+[foggytrust - trim_attack] Iteration 1169. Test_acc 0.5299
+[foggytrust - trim_attack] Iteration 1179. Test_acc 0.4935
+[foggytrust - trim_attack] Iteration 1189. Test_acc 0.5298
+[foggytrust - trim_attack] Iteration 1199. Test_acc 0.5000
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__trim_attack__foggytrust_fedavg__iter_001200.params
+[foggytrust - trim_attack] Iteration 1209. Test_acc 0.5254
+[foggytrust - trim_attack] Iteration 1219. Test_acc 0.5333
+[foggytrust - trim_attack] Iteration 1229. Test_acc 0.5242
+[foggytrust - trim_attack] Iteration 1239. Test_acc 0.5292
+[foggytrust - trim_attack] Iteration 1249. Test_acc 0.5223
+[foggytrust - trim_attack] Iteration 1259. Test_acc 0.5403
+[foggytrust - trim_attack] Iteration 1269. Test_acc 0.4837
+[foggytrust - trim_attack] Iteration 1279. Test_acc 0.5154
+[foggytrust - trim_attack] Iteration 1289. Test_acc 0.4393
+[foggytrust - trim_attack] Iteration 1299. Test_acc 0.5173
+[foggytrust - trim_attack] Iteration 1309. Test_acc 0.5214
+[foggytrust - trim_attack] Iteration 1319. Test_acc 0.5266
+[foggytrust - trim_attack] Iteration 1329. Test_acc 0.5178
+[foggytrust - trim_attack] Iteration 1339. Test_acc 0.5016
+[foggytrust - trim_attack] Iteration 1349. Test_acc 0.5267
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__trim_attack__foggytrust_fedavg__iter_001350.params
+[foggytrust - trim_attack] Iteration 1359. Test_acc 0.5362
+[foggytrust - trim_attack] Iteration 1369. Test_acc 0.4919
+[foggytrust - trim_attack] Iteration 1379. Test_acc 0.5326
+[foggytrust - trim_attack] Iteration 1389. Test_acc 0.4409
+[foggytrust - trim_attack] Iteration 1399. Test_acc 0.4927
+[foggytrust - trim_attack] Iteration 1409. Test_acc 0.5557
+[foggytrust - trim_attack] Iteration 1419. Test_acc 0.5629
+[foggytrust - trim_attack] Iteration 1429. Test_acc 0.4818
+[foggytrust - trim_attack] Iteration 1439. Test_acc 0.5503
+[foggytrust - trim_attack] Iteration 1449. Test_acc 0.5274
+[foggytrust - trim_attack] Iteration 1459. Test_acc 0.5309
+[foggytrust - trim_attack] Iteration 1469. Test_acc 0.4732
+[foggytrust - trim_attack] Iteration 1479. Test_acc 0.5480
+[foggytrust - trim_attack] Iteration 1489. Test_acc 0.5222
+[foggytrust - trim_attack] Iteration 1499. Test_acc 0.5165
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__trim_attack__foggytrust_fedavg__iter_001500.params
+Checkpoint already complete (iter 1500/1500): checkpoints/foggytrust__pair__every_10pct_of_1500__trim_attack__foggytrust_fedavg__iter_001500.params
+Checkpoint already complete (iter 1500/1500): checkpoints/foggytrust__pair__every_10pct_of_1500__trim_attack__foggytrust_fedavg__iter_001500.params
+Checkpoint already complete (iter 1500/1500): checkpoints/foggytrust__pair__every_10pct_of_1500__trim_attack__foggytrust_fedavg__iter_001500.params
+Skipping run: final checkpoint exists; not loading datasets/models.

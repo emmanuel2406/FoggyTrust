@@ -1,0 +1,225 @@
+Checkpoint family niter mismatch while checking completion; using requested schedule path: checkpoints/foggytrust__pair__every_10pct_of_1500__krum_attack__foggytrust_fedavg.params
+Checkpoint not found, starting fresh: checkpoints/foggytrust__pair__every_10pct_of_1500__krum_attack__foggytrust_fedavg.params
+Resume status: start_iter=0, niter=1500, remaining_iterations=1500
+FoggyTrust trusted-data mode: replicated per_group=100 (1000 total across groups)
+FoggyTrust groups fixed at startup: 10 groups
+  fog_group=0 workers=10 byzantine=2 trusted_points=100
+  fog_group=1 workers=10 byzantine=2 trusted_points=100
+  fog_group=2 workers=10 byzantine=2 trusted_points=100
+  fog_group=3 workers=10 byzantine=2 trusted_points=100
+  fog_group=4 workers=10 byzantine=2 trusted_points=100
+  fog_group=5 workers=10 byzantine=2 trusted_points=100
+  fog_group=6 workers=10 byzantine=2 trusted_points=100
+  fog_group=7 workers=10 byzantine=2 trusted_points=100
+  fog_group=8 workers=10 byzantine=2 trusted_points=100
+  fog_group=9 workers=10 byzantine=2 trusted_points=100
+Aggregator state not found, starting fresh: checkpoints/foggytrust__pair__every_10pct_of_1500__krum_attack__foggytrust_fedavg.state.npz
+[foggytrust - krum_attack] Iteration 09. Test_acc 0.1616
+[foggytrust - krum_attack] Iteration 19. Test_acc 0.2145
+[foggytrust - krum_attack] Iteration 29. Test_acc 0.2571
+[foggytrust - krum_attack] Iteration 39. Test_acc 0.2791
+[foggytrust - krum_attack] Iteration 49. Test_acc 0.2950
+[foggytrust - krum_attack] Iteration 59. Test_acc 0.3046
+[foggytrust - krum_attack] Iteration 69. Test_acc 0.3143
+[foggytrust - krum_attack] Iteration 79. Test_acc 0.3249
+[foggytrust - krum_attack] Iteration 89. Test_acc 0.3274
+[foggytrust - krum_attack] Iteration 99. Test_acc 0.3382
+[foggytrust - krum_attack] Iteration 109. Test_acc 0.3393
+[foggytrust - krum_attack] Iteration 119. Test_acc 0.3421
+[foggytrust - krum_attack] Iteration 129. Test_acc 0.3382
+[foggytrust - krum_attack] Iteration 139. Test_acc 0.3400
+[foggytrust - krum_attack] Iteration 149. Test_acc 0.3494
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__krum_attack__foggytrust_fedavg__iter_000150.params
+[foggytrust - krum_attack] Iteration 159. Test_acc 0.3584
+[foggytrust - krum_attack] Iteration 169. Test_acc 0.3586
+[foggytrust - krum_attack] Iteration 179. Test_acc 0.3690
+[foggytrust - krum_attack] Iteration 189. Test_acc 0.3746
+[foggytrust - krum_attack] Iteration 199. Test_acc 0.3755
+[foggytrust - krum_attack] Iteration 209. Test_acc 0.3763
+[foggytrust - krum_attack] Iteration 219. Test_acc 0.3795
+[foggytrust - krum_attack] Iteration 229. Test_acc 0.3685
+[foggytrust - krum_attack] Iteration 239. Test_acc 0.3802
+[foggytrust - krum_attack] Iteration 249. Test_acc 0.3584
+[foggytrust - krum_attack] Iteration 259. Test_acc 0.3464
+[foggytrust - krum_attack] Iteration 269. Test_acc 0.3806
+[foggytrust - krum_attack] Iteration 279. Test_acc 0.3812
+[foggytrust - krum_attack] Iteration 289. Test_acc 0.3409
+[foggytrust - krum_attack] Iteration 299. Test_acc 0.3838
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__krum_attack__foggytrust_fedavg__iter_000300.params
+[foggytrust - krum_attack] Iteration 309. Test_acc 0.4002
+[foggytrust - krum_attack] Iteration 319. Test_acc 0.3847
+[foggytrust - krum_attack] Iteration 329. Test_acc 0.3823
+[foggytrust - krum_attack] Iteration 339. Test_acc 0.3827
+[foggytrust - krum_attack] Iteration 349. Test_acc 0.3970
+[foggytrust - krum_attack] Iteration 359. Test_acc 0.3377
+[foggytrust - krum_attack] Iteration 369. Test_acc 0.4193
+[foggytrust - krum_attack] Iteration 379. Test_acc 0.4205
+[foggytrust - krum_attack] Iteration 389. Test_acc 0.4044
+[foggytrust - krum_attack] Iteration 399. Test_acc 0.4154
+[foggytrust - krum_attack] Iteration 409. Test_acc 0.4215
+[foggytrust - krum_attack] Iteration 419. Test_acc 0.3916
+[foggytrust - krum_attack] Iteration 429. Test_acc 0.3941
+[foggytrust - krum_attack] Iteration 439. Test_acc 0.4155
+[foggytrust - krum_attack] Iteration 449. Test_acc 0.4166
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__krum_attack__foggytrust_fedavg__iter_000450.params
+[foggytrust - krum_attack] Iteration 459. Test_acc 0.3996
+[foggytrust - krum_attack] Iteration 469. Test_acc 0.4166
+[foggytrust - krum_attack] Iteration 479. Test_acc 0.4090
+[foggytrust - krum_attack] Iteration 489. Test_acc 0.4213
+[foggytrust - krum_attack] Iteration 499. Test_acc 0.3851
+[foggytrust - krum_attack] Iteration 509. Test_acc 0.4381
+[foggytrust - krum_attack] Iteration 519. Test_acc 0.3680
+[foggytrust - krum_attack] Iteration 529. Test_acc 0.4361
+Loaded checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__krum_attack__foggytrust_fedavg__iter_000450.params
+Resume status: start_iter=450, niter=1500, remaining_iterations=1050
+FoggyTrust trusted-data mode: replicated per_group=100 (1000 total across groups)
+FoggyTrust groups fixed at startup: 10 groups
+  fog_group=0 workers=10 byzantine=2 trusted_points=100
+  fog_group=1 workers=10 byzantine=2 trusted_points=100
+  fog_group=2 workers=10 byzantine=2 trusted_points=100
+  fog_group=3 workers=10 byzantine=2 trusted_points=100
+  fog_group=4 workers=10 byzantine=2 trusted_points=100
+  fog_group=5 workers=10 byzantine=2 trusted_points=100
+  fog_group=6 workers=10 byzantine=2 trusted_points=100
+  fog_group=7 workers=10 byzantine=2 trusted_points=100
+  fog_group=8 workers=10 byzantine=2 trusted_points=100
+  fog_group=9 workers=10 byzantine=2 trusted_points=100
+Aggregator state not found, starting fresh: checkpoints/foggytrust__pair__every_10pct_of_1500__krum_attack__foggytrust_fedavg__iter_000450.state.npz
+[foggytrust - krum_attack] Iteration 459. Test_acc 0.4137
+[foggytrust - krum_attack] Iteration 469. Test_acc 0.3922
+[foggytrust - krum_attack] Iteration 479. Test_acc 0.3777
+[foggytrust - krum_attack] Iteration 489. Test_acc 0.3496
+[foggytrust - krum_attack] Iteration 499. Test_acc 0.4162
+[foggytrust - krum_attack] Iteration 509. Test_acc 0.3811
+[foggytrust - krum_attack] Iteration 519. Test_acc 0.3884
+[foggytrust - krum_attack] Iteration 529. Test_acc 0.4228
+[foggytrust - krum_attack] Iteration 539. Test_acc 0.4198
+[foggytrust - krum_attack] Iteration 549. Test_acc 0.4297
+[foggytrust - krum_attack] Iteration 559. Test_acc 0.4278
+[foggytrust - krum_attack] Iteration 569. Test_acc 0.4382
+[foggytrust - krum_attack] Iteration 579. Test_acc 0.4331
+[foggytrust - krum_attack] Iteration 589. Test_acc 0.3670
+[foggytrust - krum_attack] Iteration 599. Test_acc 0.4399
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__krum_attack__foggytrust_fedavg__iter_000600.params
+[foggytrust - krum_attack] Iteration 609. Test_acc 0.3625
+[foggytrust - krum_attack] Iteration 619. Test_acc 0.4339
+[foggytrust - krum_attack] Iteration 629. Test_acc 0.4348
+[foggytrust - krum_attack] Iteration 639. Test_acc 0.4487
+[foggytrust - krum_attack] Iteration 649. Test_acc 0.4485
+[foggytrust - krum_attack] Iteration 659. Test_acc 0.4430
+[foggytrust - krum_attack] Iteration 669. Test_acc 0.4204
+[foggytrust - krum_attack] Iteration 679. Test_acc 0.4422
+[foggytrust - krum_attack] Iteration 689. Test_acc 0.4506
+[foggytrust - krum_attack] Iteration 699. Test_acc 0.4498
+[foggytrust - krum_attack] Iteration 709. Test_acc 0.4495
+[foggytrust - krum_attack] Iteration 719. Test_acc 0.4483
+[foggytrust - krum_attack] Iteration 729. Test_acc 0.4532
+[foggytrust - krum_attack] Iteration 739. Test_acc 0.4431
+[foggytrust - krum_attack] Iteration 749. Test_acc 0.4588
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__krum_attack__foggytrust_fedavg__iter_000750.params
+[foggytrust - krum_attack] Iteration 759. Test_acc 0.4199
+[foggytrust - krum_attack] Iteration 769. Test_acc 0.4278
+[foggytrust - krum_attack] Iteration 779. Test_acc 0.4574
+[foggytrust - krum_attack] Iteration 789. Test_acc 0.4286
+[foggytrust - krum_attack] Iteration 799. Test_acc 0.4331
+[foggytrust - krum_attack] Iteration 809. Test_acc 0.4611
+[foggytrust - krum_attack] Iteration 819. Test_acc 0.4476
+[foggytrust - krum_attack] Iteration 829. Test_acc 0.4642
+[foggytrust - krum_attack] Iteration 839. Test_acc 0.4606
+[foggytrust - krum_attack] Iteration 849. Test_acc 0.4698
+[foggytrust - krum_attack] Iteration 859. Test_acc 0.4307
+[foggytrust - krum_attack] Iteration 869. Test_acc 0.4450
+[foggytrust - krum_attack] Iteration 879. Test_acc 0.4467
+[foggytrust - krum_attack] Iteration 889. Test_acc 0.4568
+[foggytrust - krum_attack] Iteration 899. Test_acc 0.4206
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__krum_attack__foggytrust_fedavg__iter_000900.params
+[foggytrust - krum_attack] Iteration 909. Test_acc 0.4705
+[foggytrust - krum_attack] Iteration 919. Test_acc 0.4614
+[foggytrust - krum_attack] Iteration 929. Test_acc 0.4385
+[foggytrust - krum_attack] Iteration 939. Test_acc 0.4660
+[foggytrust - krum_attack] Iteration 949. Test_acc 0.4467
+[foggytrust - krum_attack] Iteration 959. Test_acc 0.4464
+[foggytrust - krum_attack] Iteration 969. Test_acc 0.4815
+[foggytrust - krum_attack] Iteration 979. Test_acc 0.4668
+[foggytrust - krum_attack] Iteration 989. Test_acc 0.4553
+[foggytrust - krum_attack] Iteration 999. Test_acc 0.4399
+[foggytrust - krum_attack] Iteration 1009. Test_acc 0.4345
+[foggytrust - krum_attack] Iteration 1019. Test_acc 0.4856
+[foggytrust - krum_attack] Iteration 1029. Test_acc 0.4803
+[foggytrust - krum_attack] Iteration 1039. Test_acc 0.4738
+[foggytrust - krum_attack] Iteration 1049. Test_acc 0.4418
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__krum_attack__foggytrust_fedavg__iter_001050.params
+[foggytrust - krum_attack] Iteration 1059. Test_acc 0.4819
+[foggytrust - krum_attack] Iteration 1069. Test_acc 0.4637
+[foggytrust - krum_attack] Iteration 1079. Test_acc 0.4697
+[foggytrust - krum_attack] Iteration 1089. Test_acc 0.4810
+[foggytrust - krum_attack] Iteration 1099. Test_acc 0.4084
+[foggytrust - krum_attack] Iteration 1109. Test_acc 0.4684
+[foggytrust - krum_attack] Iteration 1119. Test_acc 0.4998
+[foggytrust - krum_attack] Iteration 1129. Test_acc 0.4125
+[foggytrust - krum_attack] Iteration 1139. Test_acc 0.4276
+[foggytrust - krum_attack] Iteration 1149. Test_acc 0.4549
+[foggytrust - krum_attack] Iteration 1159. Test_acc 0.4589
+[foggytrust - krum_attack] Iteration 1169. Test_acc 0.4878
+[foggytrust - krum_attack] Iteration 1179. Test_acc 0.4054
+[foggytrust - krum_attack] Iteration 1189. Test_acc 0.5045
+[foggytrust - krum_attack] Iteration 1199. Test_acc 0.4361
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__krum_attack__foggytrust_fedavg__iter_001200.params
+[foggytrust - krum_attack] Iteration 1209. Test_acc 0.4153
+[foggytrust - krum_attack] Iteration 1219. Test_acc 0.4539
+[foggytrust - krum_attack] Iteration 1229. Test_acc 0.4417
+[foggytrust - krum_attack] Iteration 1239. Test_acc 0.3877
+[foggytrust - krum_attack] Iteration 1249. Test_acc 0.5045
+[foggytrust - krum_attack] Iteration 1259. Test_acc 0.4700
+[foggytrust - krum_attack] Iteration 1269. Test_acc 0.4897
+[foggytrust - krum_attack] Iteration 1279. Test_acc 0.5048
+[foggytrust - krum_attack] Iteration 1289. Test_acc 0.4934
+[foggytrust - krum_attack] Iteration 1299. Test_acc 0.4388
+Loaded checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__krum_attack__foggytrust_fedavg__iter_001200.params
+Loaded checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__krum_attack__foggytrust_fedavg__iter_001200.params
+Resume status: start_iter=1200, niter=1500, remaining_iterations=300
+FoggyTrust trusted-data mode: replicated per_group=100 (1000 total across groups)
+FoggyTrust groups fixed at startup: 10 groups
+  fog_group=0 workers=10 byzantine=2 trusted_points=100
+  fog_group=1 workers=10 byzantine=2 trusted_points=100
+  fog_group=2 workers=10 byzantine=2 trusted_points=100
+  fog_group=3 workers=10 byzantine=2 trusted_points=100
+  fog_group=4 workers=10 byzantine=2 trusted_points=100
+  fog_group=5 workers=10 byzantine=2 trusted_points=100
+  fog_group=6 workers=10 byzantine=2 trusted_points=100
+  fog_group=7 workers=10 byzantine=2 trusted_points=100
+  fog_group=8 workers=10 byzantine=2 trusted_points=100
+  fog_group=9 workers=10 byzantine=2 trusted_points=100
+Aggregator state not found, starting fresh: checkpoints/foggytrust__pair__every_10pct_of_1500__krum_attack__foggytrust_fedavg__iter_001200.state.npz
+[foggytrust - krum_attack] Iteration 1209. Test_acc 0.4945
+[foggytrust - krum_attack] Iteration 1219. Test_acc 0.5110
+[foggytrust - krum_attack] Iteration 1229. Test_acc 0.4866
+[foggytrust - krum_attack] Iteration 1239. Test_acc 0.5022
+[foggytrust - krum_attack] Iteration 1249. Test_acc 0.4642
+[foggytrust - krum_attack] Iteration 1259. Test_acc 0.4602
+[foggytrust - krum_attack] Iteration 1269. Test_acc 0.4457
+[foggytrust - krum_attack] Iteration 1279. Test_acc 0.5111
+[foggytrust - krum_attack] Iteration 1289. Test_acc 0.4996
+[foggytrust - krum_attack] Iteration 1299. Test_acc 0.4455
+[foggytrust - krum_attack] Iteration 1309. Test_acc 0.4604
+[foggytrust - krum_attack] Iteration 1319. Test_acc 0.4920
+[foggytrust - krum_attack] Iteration 1329. Test_acc 0.4122
+[foggytrust - krum_attack] Iteration 1339. Test_acc 0.5014
+[foggytrust - krum_attack] Iteration 1349. Test_acc 0.4686
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__krum_attack__foggytrust_fedavg__iter_001350.params
+[foggytrust - krum_attack] Iteration 1359. Test_acc 0.4978
+[foggytrust - krum_attack] Iteration 1369. Test_acc 0.5081
+[foggytrust - krum_attack] Iteration 1379. Test_acc 0.3968
+[foggytrust - krum_attack] Iteration 1389. Test_acc 0.5069
+[foggytrust - krum_attack] Iteration 1399. Test_acc 0.5101
+[foggytrust - krum_attack] Iteration 1409. Test_acc 0.4889
+[foggytrust - krum_attack] Iteration 1419. Test_acc 0.5287
+[foggytrust - krum_attack] Iteration 1429. Test_acc 0.4592
+[foggytrust - krum_attack] Iteration 1439. Test_acc 0.4670
+[foggytrust - krum_attack] Iteration 1449. Test_acc 0.4855
+[foggytrust - krum_attack] Iteration 1459. Test_acc 0.5010
+[foggytrust - krum_attack] Iteration 1469. Test_acc 0.5197
+[foggytrust - krum_attack] Iteration 1479. Test_acc 0.4181
+[foggytrust - krum_attack] Iteration 1489. Test_acc 0.4596
+[foggytrust - krum_attack] Iteration 1499. Test_acc 0.4837
+Saved checkpoint: checkpoints/foggytrust__pair__every_10pct_of_1500__krum_attack__foggytrust_fedavg__iter_001500.params
