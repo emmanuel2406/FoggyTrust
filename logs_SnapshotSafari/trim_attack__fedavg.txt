@@ -1,3 +1,43 @@
 SnapshotSafari resize auto-detected: 96x128
 Checkpoint not found, starting fresh: checkpoints/flat__pair__every_10pct_of_300__trim_attack__fedavg.params
 Resume status: start_iter=0, niter=300, remaining_iterations=300
+[fedavg - trim_attack] Iteration 09. Test_acc 0.0767
+[fedavg - trim_attack] Iteration 19. Test_acc 0.6413
+[fedavg - trim_attack] Iteration 29. Test_acc 0.6413
+Saved checkpoint: checkpoints/flat__pair__every_10pct_of_300__trim_attack__fedavg__iter_000030.params
+[fedavg - trim_attack] Iteration 39. Test_acc 0.6381
+[fedavg - trim_attack] Iteration 49. Test_acc 0.6413
+[fedavg - trim_attack] Iteration 59. Test_acc 0.6393
+Saved checkpoint: checkpoints/flat__pair__every_10pct_of_300__trim_attack__fedavg__iter_000060.params
+[fedavg - trim_attack] Iteration 69. Test_acc 0.6436
+[fedavg - trim_attack] Iteration 79. Test_acc 0.6378
+[fedavg - trim_attack] Iteration 89. Test_acc 0.6400
+Saved checkpoint: checkpoints/flat__pair__every_10pct_of_300__trim_attack__fedavg__iter_000090.params
+[fedavg - trim_attack] Iteration 99. Test_acc 0.6410
+[fedavg - trim_attack] Iteration 109. Test_acc 0.6381
+[fedavg - trim_attack] Iteration 119. Test_acc 0.6400
+Saved checkpoint: checkpoints/flat__pair__every_10pct_of_300__trim_attack__fedavg__iter_000120.params
+[fedavg - trim_attack] Iteration 129. Test_acc 0.6367
+[fedavg - trim_attack] Iteration 139. Test_acc 0.6406
+[fedavg - trim_attack] Iteration 149. Test_acc 0.6332
+Saved checkpoint: checkpoints/flat__pair__every_10pct_of_300__trim_attack__fedavg__iter_000150.params
+[fedavg - trim_attack] Iteration 159. Test_acc 0.6354
+[fedavg - trim_attack] Iteration 169. Test_acc 0.6357
+[fedavg - trim_attack] Iteration 179. Test_acc 0.6321
+Saved checkpoint: checkpoints/flat__pair__every_10pct_of_300__trim_attack__fedavg__iter_000180.params
+[fedavg - trim_attack] Iteration 189. Test_acc 0.6322
+[fedavg - trim_attack] Iteration 199. Test_acc 0.6325
+[fedavg - trim_attack] Iteration 209. Test_acc 0.6276
+Saved checkpoint: checkpoints/flat__pair__every_10pct_of_300__trim_attack__fedavg__iter_000210.params
+[fedavg - trim_attack] Iteration 219. Test_acc 0.6229
+[fedavg - trim_attack] Iteration 229. Test_acc 0.6237
+[fedavg - trim_attack] Iteration 239. Test_acc 0.6149
+Saved checkpoint: checkpoints/flat__pair__every_10pct_of_300__trim_attack__fedavg__iter_000240.params
+[fedavg - trim_attack] Iteration 249. Test_acc 0.6080
+[fedavg - trim_attack] Iteration 259. Test_acc 0.6110
+[fedavg - trim_attack] Iteration 269. Test_acc 0.6110
+Saved checkpoint: checkpoints/flat__pair__every_10pct_of_300__trim_attack__fedavg__iter_000270.params
+[fedavg - trim_attack] Iteration 279. Test_acc 0.6074
+[fedavg - trim_attack] Iteration 289. Test_acc 0.6076
+[fedavg - trim_attack] Iteration 299. Test_acc 0.6113
+Saved checkpoint: checkpoints/flat__pair__every_10pct_of_300__trim_attack__fedavg__iter_000300.params
