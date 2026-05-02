@@ -186,9 +186,6 @@ python test_byz_all.py \
   --max_workers 10
 ```
 
-The submitted Slurm entry point is `run.sbatch`; it currently reproduces the
-SnapshotSafari sweep above on one GPU.
-
 ## Logged Outputs
 
 Experiment logs are written to dataset-specific directories such as
@@ -238,4 +235,3 @@ python plotting/plot_accuracy.py \
 - `nd_aggregation.py`: flat aggregation implementations.
 - `byzantine.py`: Byzantine attack implementations.
 - `plotting/plot_accuracy.py`: log parser and plotting utility.
-- `run.sbatch`: cluster batch script for SnapshotSafari reproduction.
